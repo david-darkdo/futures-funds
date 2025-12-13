@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
+          daily_growth_rate: number | null
           description: string | null
           features: Json | null
           id: string
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           created_at?: string | null
+          daily_growth_rate?: number | null
           description?: string | null
           features?: Json | null
           id?: string
@@ -38,6 +40,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           created_at?: string | null
+          daily_growth_rate?: number | null
           description?: string | null
           features?: Json | null
           id?: string
