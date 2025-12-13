@@ -14,16 +14,199 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bundles: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          name: string
+          price_usd: number
+          slug: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name: string
+          price_usd: number
+          slug: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name?: string
+          price_usd?: number
+          slug?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          admin_id: string | null
+          admin_note: string | null
+          bundle_id: string
+          created_at: string | null
+          crypto_amount: number | null
+          crypto_currency: string | null
+          id: string
+          proof_url: string | null
+          status: string | null
+          txid: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_note?: string | null
+          bundle_id: string
+          created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
+          id?: string
+          proof_url?: string | null
+          status?: string | null
+          txid?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_note?: string | null
+          bundle_id?: string
+          created_at?: string | null
+          crypto_amount?: number | null
+          crypto_currency?: string | null
+          id?: string
+          proof_url?: string | null
+          status?: string | null
+          txid?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          active: boolean | null
+          address: string
+          created_at: string | null
+          currency: string
+          id: string
+          label: string | null
+          network: string
+        }
+        Insert: {
+          active?: boolean | null
+          address: string
+          created_at?: string | null
+          currency: string
+          id?: string
+          label?: string | null
+          network: string
+        }
+        Update: {
+          active?: boolean | null
+          address?: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          label?: string | null
+          network?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +333,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
