@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TrendingUp, Eye, EyeOff, ArrowRight, Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,7 @@ export default function Signup() {
     agreeTerms: false,
   });
   const { toast } = useToast();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,14 +44,26 @@ export default function Signup() {
 
     setIsLoading(true);
 
-    // Simulate signup - will be replaced with actual auth
-    setTimeout(() => {
-      setIsLoading(false);
+    const { error } = await signUp(formData.email, formData.password, formData.name);
+
+    setIsLoading(false);
+
+    if (error) {
+      let errorMessage = error.message;
+      if (error.message.includes("already registered")) {
+        errorMessage = "This email is already registered. Please sign in instead.";
+      }
       toast({
-        title: "Backend Required",
-        description: "Please connect Lovable Cloud to enable authentication.",
+        title: "Sign up failed",
+        description: errorMessage,
+        variant: "destructive",
       });
-    }, 1000);
+    } else {
+      toast({
+        title: "Account created!",
+        description: "You have been signed in to your new account.",
+      });
+    }
   };
 
   return (

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TrendingUp, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,19 +13,25 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login - will be replaced with actual auth
-    setTimeout(() => {
-      setIsLoading(false);
+    const { error } = await signIn(email, password);
+
+    setIsLoading(false);
+
+    if (error) {
       toast({
-        title: "Backend Required",
-        description: "Please connect Lovable Cloud to enable authentication.",
+        title: "Sign in failed",
+        description: error.message === "Invalid login credentials" 
+          ? "Invalid email or password. Please try again."
+          : error.message,
+        variant: "destructive",
       });
-    }, 1000);
+    }
   };
 
   return (
