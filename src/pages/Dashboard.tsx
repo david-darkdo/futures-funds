@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Menu, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn, maskEmail } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData, calculateGrowth, generateGrowthChartData } from "@/hooks/useDashboardData";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -86,7 +86,7 @@ export default function Dashboard() {
 
   const accountStatus = activePayment ? "active" : payments.length > 0 ? "pending" : "inactive";
   const StatusIcon = getStatusIcon(accountStatus);
-  const displayName = profile?.full_name || profile?.email || "Investor";
+  const displayName = profile?.full_name || maskEmail(profile?.email) || "Investor";
 
   return (
     <div className="min-h-screen bg-background flex">
