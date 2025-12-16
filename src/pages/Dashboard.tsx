@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { Menu, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Menu, CheckCircle, Clock, AlertCircle, Plus, ArrowDownToLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { cn, maskEmail } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData, calculateGrowth, generateGrowthChartData } from "@/hooks/useDashboardData";
@@ -12,12 +13,16 @@ import { GrowthChart } from "@/components/dashboard/GrowthChart";
 import { ActivityTimeline, generateTimelineEvents } from "@/components/dashboard/ActivityTimeline";
 import { MessagingPanel } from "@/components/dashboard/MessagingPanel";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
+import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { profile, payments, activePayment, loading } = useDashboardData();
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -207,6 +212,17 @@ export default function Dashboard() {
           )}
         </main>
       </div>
+
+      <PaymentUploadDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+      />
+
+      <WithdrawalRequestDialog
+        open={withdrawalDialogOpen}
+        onOpenChange={setWithdrawalDialogOpen}
+        availableBalance={growthData.currentValue}
+      />
     </div>
   );
 }

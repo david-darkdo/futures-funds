@@ -195,6 +195,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          admin_id: string | null
+          admin_note: string | null
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          network: string
+          status: string
+          txid: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_note?: string | null
+          amount: number
+          created_at?: string
+          currency: string
+          id?: string
+          network: string
+          status?: string
+          txid?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          network?: string
+          status?: string
+          txid?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
