@@ -11,7 +11,7 @@ import {
   LogOut,
   X
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, maskEmail } from "@/lib/utils";
 
 interface DashboardSidebarProps {
   isOpen: boolean;
@@ -97,7 +97,7 @@ export function DashboardSidebar({
                 <div className="overflow-hidden">
                   <p className="font-medium text-foreground truncate">{displayName}</p>
                   {userEmail && userName && (
-                    <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
+                    <p className="text-sm text-muted-foreground truncate">{maskEmail(userEmail)}</p>
                   )}
                 </div>
               </div>
