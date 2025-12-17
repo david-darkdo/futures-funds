@@ -1,23 +1,26 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Shield, Clock, ChevronRight } from "lucide-react";
+import { TrendingUp, Shield, Clock, ChevronRight, Sparkles } from "lucide-react";
 
-export function EmptyState() {
+interface EmptyStateProps {
+  onStartInvestment?: () => void;
+}
+
+export function EmptyState({ onStartInvestment }: EmptyStateProps) {
   const features = [
     {
       icon: TrendingUp,
-      title: "Daily Compounding",
-      description: "Your investment grows every day with competitive daily returns"
+      title: "Portfolio Growth",
+      description: "Watch your investment progress with performance updates managed by our team"
     },
     {
       icon: Shield,
       title: "Secure & Transparent",
-      description: "Track your portfolio in real-time with complete transparency"
+      description: "Full visibility into your portfolio status with verified transactions"
     },
     {
-      icon: Clock,
-      title: "Automated Growth",
-      description: "Set it and watch it grow - no active management required"
+      icon: Sparkles,
+      title: "Managed Performance",
+      description: "Growth values updated by fund managers - no automated claims"
     }
   ];
 
@@ -28,10 +31,10 @@ export function EmptyState() {
           <TrendingUp className="w-8 h-8 text-primary-foreground" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          Start Your Investment Journey
+          Begin Your Investment Journey
         </h2>
         <p className="text-muted-foreground">
-          Choose an investment bundle to begin growing your capital with our proven growth strategies.
+          Select an investment bundle to start building your portfolio. All growth values are managed and updated by our professional team.
         </p>
       </div>
 
@@ -51,11 +54,9 @@ export function EmptyState() {
       </div>
 
       <div className="flex justify-center">
-        <Button variant="gold" size="lg" asChild>
-          <Link to="/dashboard/bundles">
-            Browse Investment Bundles
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Link>
+        <Button variant="gold" size="lg" onClick={onStartInvestment}>
+          Start New Investment
+          <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
     </div>

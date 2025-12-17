@@ -301,6 +301,71 @@ export function useAdminData() {
     return true;
   };
 
+  const updateUserStatus = async (userId: string, status: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", userId);
+
+    if (error) {
+      toast.error("Failed to update user status");
+      return false;
+    }
+
+    toast.success("User status updated");
+    fetchData();
+    return true;
+  };
+
+  const addBundle = async (bundle: Omit<Bundle, "id">) => {
+    const { error } = await supabase.from("bundles").insert({
+      name: bundle.name,
+      slug: bundle.slug,
+      price_usd: bundle.price_usd,
+      description: bundle.description,
+      daily_growth_rate: bundle.daily_growth_rate,
+      active: bundle.active ?? true,
+    });
+
+    if (error) {
+      toast.error("Failed to create bundle");
+      return false;
+    }
+
+    toast.success("Bundle created successfully");
+    fetchData();
+    return true;
+  };
+
+  const updateBundle = async (bundleId: string, updates: Partial<Bundle>) => {
+    const { error } = await supabase
+      .from("bundles")
+      .update(updates)
+      .eq("id", bundleId);
+
+    if (error) {
+      toast.error("Failed to update bundle");
+      return false;
+    }
+
+    toast.success("Bundle updated successfully");
+    fetchData();
+    return true;
+  };
+
+  const deleteBundle = async (bundleId: string) => {
+    const { error } = await supabase.from("bundles").delete().eq("id", bundleId);
+
+    if (error) {
+      toast.error("Failed to delete bundle");
+      return false;
+    }
+
+    toast.success("Bundle deleted successfully");
+    fetchData();
+    return true;
+  };
+
   return {
     profiles,
     payments,
@@ -317,5 +382,9 @@ export function useAdminData() {
     addWallet,
     updateWallet,
     deleteWallet,
+    updateUserStatus,
+    addBundle,
+    updateBundle,
+    deleteBundle,
   };
 }
