@@ -117,25 +117,51 @@ export default function Dashboard() {
                 <Menu className="w-6 h-6" />
               </button>
               <div>
-                <h1 className="text-xl font-semibold">Dashboard</h1>
+                <h1 className="text-xl font-semibold">Portfolio Overview</h1>
                 {loading ? (
                   <Skeleton className="h-4 w-40 mt-1" />
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Welcome back, {displayName}
+                    Welcome back, {displayName}. Your portfolio is progressing steadily.
                   </p>
                 )}
               </div>
             </div>
 
-            <div
-              className={cn(
-                "px-3 py-1.5 rounded-full text-sm font-medium border flex items-center gap-2",
-                getStatusColor(accountStatus)
-              )}
-            >
-              <StatusIcon className="w-4 h-4" />
-              <span className="capitalize">{accountStatus}</span>
+            <div className="flex items-center gap-3">
+              {/* Action Buttons */}
+              <div className="hidden sm:flex items-center gap-2">
+                <Button
+                  variant="gold-outline"
+                  size="sm"
+                  onClick={() => setPaymentDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Investment
+                </Button>
+                {activePayment && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setWithdrawalDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <ArrowDownToLine className="w-4 h-4" />
+                    Withdraw
+                  </Button>
+                )}
+              </div>
+
+              <div
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-sm font-medium border flex items-center gap-2",
+                  getStatusColor(accountStatus)
+                )}
+              >
+                <StatusIcon className="w-4 h-4" />
+                <span className="capitalize">{accountStatus}</span>
+              </div>
             </div>
           </div>
         </header>
@@ -174,7 +200,7 @@ export default function Dashboard() {
               </div>
             </>
           ) : !activePayment && payments.length === 0 ? (
-            <EmptyState />
+            <EmptyState onStartInvestment={() => setPaymentDialogOpen(true)} />
           ) : (
             <>
               <DashboardSummaryCards

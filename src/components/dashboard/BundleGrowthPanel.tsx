@@ -122,12 +122,15 @@ export function BundleGrowthPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="w-2 h-2 rounded-full bg-teal animate-pulse" />
-            <span>Today's projected growth</span>
+            <span>Simulated daily performance</span>
           </div>
           <span className="text-sm font-medium text-teal">
             +${todaysGrowth.toFixed(2)} ({dailyRate}%/day)
           </span>
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Growth values are managed updates, not financial guarantees.
+        </p>
       </div>
     </div>
   );

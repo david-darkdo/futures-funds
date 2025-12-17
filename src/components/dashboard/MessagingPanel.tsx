@@ -24,26 +24,26 @@ const activeMessages: Message[] = [
   {
     id: "1",
     icon: "trending",
-    title: "Your investment is actively compounding",
-    description: "Capital is being allocated across diversified growth strategies"
+    title: "Growth cycle active",
+    description: "Your portfolio is progressing steadily under fund management"
   },
   {
     id: "2",
     icon: "shield",
-    title: "Capital allocation optimized",
-    description: "Your portfolio is balanced for consistent, sustainable returns"
+    title: "Performance updated by manager",
+    description: "All growth values are reviewed and updated by our team"
   },
   {
     id: "3",
     icon: "clock",
-    title: "Next growth update in 24h",
-    description: "Daily returns are calculated and applied automatically"
+    title: "Next portfolio review scheduled",
+    description: "Performance metrics are evaluated on a regular basis"
   },
   {
     id: "4",
     icon: "sparkles",
-    title: "Growth on track",
-    description: "Your investment is performing within expected parameters"
+    title: "Compounded growth (simulated)",
+    description: "Your investment progress is tracked with managed performance updates"
   }
 ];
 
@@ -51,14 +51,14 @@ const pendingMessages: Message[] = [
   {
     id: "1",
     icon: "clock",
-    title: "Payment verification in progress",
-    description: "Our team is reviewing your payment submission"
+    title: "Verification in progress",
+    description: "Our team is reviewing your payment documentation"
   },
   {
     id: "2",
     icon: "shield",
-    title: "Your funds are secure",
-    description: "Once verified, your investment will begin compounding"
+    title: "Secure transaction processing",
+    description: "Once verified, your portfolio will be activated"
   }
 ];
 
@@ -86,7 +86,7 @@ export function MessagingPanel({ hasActiveInvestment, loading = false }: Messagi
 
   return (
     <div className="p-6 rounded-xl bg-card border border-border">
-      <h3 className="font-semibold text-foreground mb-6">System Updates</h3>
+      <h3 className="font-semibold text-foreground mb-6">Portfolio Updates</h3>
       <div className="space-y-3">
         {messages.map((message) => {
           const Icon = iconMap[message.icon];
