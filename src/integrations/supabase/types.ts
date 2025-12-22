@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+          target_table: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_table: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_table?: string
+        }
+        Relationships: []
+      }
       bundles: {
         Row: {
           active: boolean | null
@@ -144,6 +174,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_investments: {
+        Row: {
+          admin_note: string | null
+          bundle_id: string
+          created_at: string
+          current_value: number
+          growth_percentage: number
+          id: string
+          initial_amount: number
+          last_updated_by: string | null
+          payment_id: string | null
+          state: Database["public"]["Enums"]["investment_state"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          bundle_id: string
+          created_at?: string
+          current_value?: number
+          growth_percentage?: number
+          id?: string
+          initial_amount?: number
+          last_updated_by?: string | null
+          payment_id?: string | null
+          state?: Database["public"]["Enums"]["investment_state"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          bundle_id?: string
+          created_at?: string
+          current_value?: number
+          growth_percentage?: number
+          id?: string
+          initial_amount?: number
+          last_updated_by?: string | null
+          payment_id?: string | null
+          state?: Database["public"]["Enums"]["investment_state"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -256,6 +331,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      investment_state:
+        | "no_investment"
+        | "pending_payment"
+        | "active"
+        | "paused"
+        | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -384,6 +465,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      investment_state: [
+        "no_investment",
+        "pending_payment",
+        "active",
+        "paused",
+        "completed",
+      ],
     },
   },
 } as const

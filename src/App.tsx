@@ -6,10 +6,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PublicRoute } from "@/components/auth/PublicRoute";
+import { DashboardRoute } from "@/components/auth/DashboardRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+import DashboardLayout from "./pages/dashboard/DashboardLayout";
+import DashboardIndex from "./pages/dashboard/DashboardIndex";
+import DashboardStart from "./pages/dashboard/DashboardStart";
+import DashboardPending from "./pages/dashboard/DashboardPending";
+import DashboardPortfolio from "./pages/dashboard/DashboardPortfolio";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPayments from "./pages/AdminPayments";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
@@ -31,14 +36,44 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            
+            {/* Dashboard routes with state-based routing */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route index element={<DashboardIndex />} />
+              <Route 
+                path="start" 
+                element={
+                  <DashboardRoute requiredState="start">
+                    <DashboardStart />
+                  </DashboardRoute>
+                } 
+              />
+              <Route 
+                path="pending" 
+                element={
+                  <DashboardRoute requiredState="pending">
+                    <DashboardPending />
+                  </DashboardRoute>
+                } 
+              />
+              <Route 
+                path="portfolio" 
+                element={
+                  <DashboardRoute requiredState="portfolio">
+                    <DashboardPortfolio />
+                  </DashboardRoute>
+                } 
+              />
+            </Route>
+
+            {/* Admin routes - locked to admin role */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminPayments /></ProtectedRoute>} />
             <Route path="/admin/withdrawals" element={<ProtectedRoute requireAdmin><AdminWithdrawals /></ProtectedRoute>} />
             <Route path="/admin/wallets" element={<ProtectedRoute requireAdmin><AdminWallets /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
             <Route path="/admin/bundles" element={<ProtectedRoute requireAdmin><AdminBundles /></ProtectedRoute>} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
