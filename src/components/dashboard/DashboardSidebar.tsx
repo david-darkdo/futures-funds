@@ -3,15 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   TrendingUp,
-  LayoutDashboard,
-  Package,
-  Upload,
-  History,
-  Settings,
+  Rocket,
+  Clock,
+  Briefcase,
   LogOut,
-  X
+  X,
+  LockKeyhole
 } from "lucide-react";
 import { cn, maskEmail } from "@/lib/utils";
+import { useUserState, UserDashboardState } from "@/hooks/useUserState";
 
 interface DashboardSidebarProps {
   isOpen: boolean;
@@ -22,12 +22,30 @@ interface DashboardSidebarProps {
   onSignOut: () => void;
 }
 
-const sidebarLinks = [
-  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { name: "My Bundles", href: "/dashboard/bundles", icon: Package },
-  { name: "Upload Payment", href: "/dashboard/upload", icon: Upload },
-  { name: "Transactions", href: "/dashboard/transactions", icon: History },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+const sidebarLinks: {
+  name: string;
+  href: string;
+  icon: typeof Rocket;
+  allowedStates: UserDashboardState[];
+}[] = [
+  { 
+    name: "Get Started", 
+    href: "/dashboard/start", 
+    icon: Rocket,
+    allowedStates: ["start"]
+  },
+  { 
+    name: "Payment Status", 
+    href: "/dashboard/pending", 
+    icon: Clock,
+    allowedStates: ["pending"]
+  },
+  { 
+    name: "My Portfolio", 
+    href: "/dashboard/portfolio", 
+    icon: Briefcase,
+    allowedStates: ["portfolio"]
+  },
 ];
 
 export function DashboardSidebar({
@@ -39,7 +57,17 @@ export function DashboardSidebar({
   onSignOut
 }: DashboardSidebarProps) {
   const location = useLocation();
+  const { state: userState, loading: stateLoading } = useUserState();
   const displayName = userName || userEmail || "User";
+
+  const isLinkActive = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + "/");
+  };
+
+  const isLinkAccessible = (allowedStates: UserDashboardState[]) => {
+    if (stateLoading) return true;
+    return allowedStates.includes(userState);
+  };
 
   return (
     <>
@@ -106,20 +134,38 @@ export function DashboardSidebar({
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
-            {sidebarLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                onClick={onClose}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors",
-                  location.pathname === link.href && "bg-secondary text-foreground"
-                )}
-              >
-                <link.icon className="w-5 h-5" />
-                <span className="font-medium">{link.name}</span>
-              </Link>
-            ))}
+            {sidebarLinks.map((link) => {
+              const isActive = isLinkActive(link.href);
+              const isAccessible = isLinkAccessible(link.allowedStates);
+              
+              return (
+                <div key={link.name} className="relative">
+                  {isAccessible ? (
+                    <Link
+                      to={link.href}
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                        isActive 
+                          ? "bg-gold/10 text-gold border border-gold/20" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      )}
+                    >
+                      <link.icon className="w-5 h-5" />
+                      <span className="font-medium">{link.name}</span>
+                    </Link>
+                  ) : (
+                    <div
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+                    >
+                      <link.icon className="w-5 h-5" />
+                      <span className="font-medium">{link.name}</span>
+                      <LockKeyhole className="w-4 h-4 ml-auto" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
 
           {/* Logout */}
