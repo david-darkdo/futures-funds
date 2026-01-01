@@ -80,6 +80,50 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_growth_logs: {
+        Row: {
+          admin_id: string
+          admin_note: string | null
+          balance_after: number
+          balance_before: number
+          change_type: string
+          created_at: string
+          id: string
+          investment_id: string
+          percentage_change: number
+        }
+        Insert: {
+          admin_id: string
+          admin_note?: string | null
+          balance_after: number
+          balance_before: number
+          change_type: string
+          created_at?: string
+          id?: string
+          investment_id: string
+          percentage_change: number
+        }
+        Update: {
+          admin_id?: string
+          admin_note?: string | null
+          balance_after?: number
+          balance_before?: number
+          change_type?: string
+          created_at?: string
+          id?: string
+          investment_id?: string
+          percentage_change?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_growth_logs_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           admin_id: string | null

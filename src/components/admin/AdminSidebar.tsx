@@ -25,11 +25,11 @@ interface AdminSidebarProps {
 const adminSidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Payments", href: "/admin/payments", icon: CreditCard, countKey: "payments" as const },
+  { name: "Investments", href: "/admin/investments", icon: TrendingUp },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: ArrowDownToLine, countKey: "withdrawals" as const },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Bundles", href: "/admin/bundles", icon: Package },
   { name: "Wallets", href: "/admin/wallets", icon: Wallet },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdrawals }: AdminSidebarProps) {

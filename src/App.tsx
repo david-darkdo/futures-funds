@@ -17,6 +17,7 @@ import DashboardPending from "./pages/dashboard/DashboardPending";
 import DashboardPortfolio from "./pages/dashboard/DashboardPortfolio";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPayments from "./pages/AdminPayments";
+import AdminInvestments from "./pages/AdminInvestments";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
 import AdminWallets from "./pages/AdminWallets";
 import AdminUsers from "./pages/AdminUsers";
@@ -69,6 +70,7 @@ const App = () => (
             {/* Admin routes - locked to admin role */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminPayments /></ProtectedRoute>} />
+            <Route path="/admin/investments" element={<ProtectedRoute requireAdmin><AdminInvestments /></ProtectedRoute>} />
             <Route path="/admin/withdrawals" element={<ProtectedRoute requireAdmin><AdminWithdrawals /></ProtectedRoute>} />
             <Route path="/admin/wallets" element={<ProtectedRoute requireAdmin><AdminWallets /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
