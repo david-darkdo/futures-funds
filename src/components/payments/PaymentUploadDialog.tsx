@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Copy, CheckCircle, Upload, ArrowRight } from "lucide-react";
+import { Copy, CheckCircle, Upload, ArrowRight, ImageIcon, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -54,14 +54,18 @@ export function PaymentUploadDialog({
 }: PaymentUploadDialogProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [selectedBundle, setSelectedBundle] = useState<string>(preselectedBundleId || "");
   const [selectedWallet, setSelectedWallet] = useState<string>("");
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [txid, setTxid] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [step, setStep] = useState<"select" | "pay" | "confirm">("select");
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -70,6 +74,8 @@ export function PaymentUploadDialog({
       setStep("select");
       setCryptoAmount("");
       setTxid("");
+      setProofFile(null);
+      setProofPreview(null);
       if (preselectedBundleId) {
         setSelectedBundle(preselectedBundleId);
       }
@@ -102,6 +108,82 @@ export function PaymentUploadDialog({
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be smaller than 5MB");
+        return;
+      }
+      setProofFile(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProofPreview(previewUrl);
+    }
+  };
+
+  const removeProofFile = () => {
+    setProofFile(null);
+    if (proofPreview) {
+      URL.revokeObjectURL(proofPreview);
+      setProofPreview(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const uploadProofImage = async (): Promise<string | null> => {
+    if (!proofFile || !user) return null;
+
+    setUploading(true);
+    try {
+      const timestamp = Date.now();
+      const fileExt = proofFile.name.split(".").pop() || "png";
+      const filePath = `${user.id}/${timestamp}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("payment-proofs")
+        .upload(filePath, proofFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      // Get the signed URL for the uploaded file
+      const { data: signedData, error: signError } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+
+      if (signError) {
+        console.error("Signed URL error:", signError);
+        // Fallback to public URL if signed fails
+        const { data: publicData } = supabase.storage
+          .from("payment-proofs")
+          .getPublicUrl(filePath);
+        return publicData.publicUrl;
+      }
+
+      return signedData.signedUrl;
+    } catch (error) {
+      console.error("Failed to upload proof:", error);
+      toast.error("Failed to upload payment proof");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user || !selectedBundle || !selectedWallet) {
       toast.error("Please complete all fields");
@@ -110,12 +192,19 @@ export function PaymentUploadDialog({
 
     setSubmitting(true);
 
+    // Upload proof image if provided
+    let proofUrl: string | null = null;
+    if (proofFile) {
+      proofUrl = await uploadProofImage();
+    }
+
     const { error } = await supabase.from("payments").insert({
       user_id: user.id,
       bundle_id: selectedBundle,
       crypto_amount: cryptoAmount ? parseFloat(cryptoAmount) : null,
       crypto_currency: selectedWalletData?.currency || null,
       txid: txid || null,
+      proof_url: proofUrl,
       status: "pending",
     });
 
@@ -144,7 +233,7 @@ export function PaymentUploadDialog({
           <DialogDescription>
             {step === "select" && "Choose the bundle you'd like to invest in"}
             {step === "pay" && "Send crypto to the address below"}
-            {step === "confirm" && "Enter payment details for verification"}
+            {step === "confirm" && "Upload proof and enter payment details"}
           </DialogDescription>
         </DialogHeader>
 
@@ -268,6 +357,45 @@ export function PaymentUploadDialog({
 
         {step === "confirm" && (
           <div className="space-y-4">
+            {/* Payment Proof Upload */}
+            <div className="space-y-2">
+              <Label>Payment Proof Screenshot</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
+              {proofPreview ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  <img
+                    src={proofPreview}
+                    alt="Payment proof preview"
+                    className="w-full h-48 object-cover"
+                  />
+                  <button
+                    onClick={removeProofFile}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-gold/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <ImageIcon className="w-8 h-8" />
+                  <span className="text-sm">Click to upload proof screenshot</span>
+                </button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Upload a screenshot of your completed transaction
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="cryptoAmount">Amount Sent (optional)</Label>
               <Input
@@ -308,6 +436,12 @@ export function PaymentUploadDialog({
                   <span className="text-muted-foreground">Method:</span>
                   <span>{selectedWalletData?.currency}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Proof:</span>
+                  <span className={proofFile ? "text-teal" : "text-muted-foreground"}>
+                    {proofFile ? "Uploaded" : "Not provided"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -347,8 +481,12 @@ export function PaymentUploadDialog({
               <Button variant="outline" onClick={() => setStep("pay")}>
                 Back
               </Button>
-              <Button variant="gold" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit for Review"}
+              <Button 
+                variant="gold" 
+                onClick={handleSubmit} 
+                disabled={submitting || uploading}
+              >
+                {uploading ? "Uploading..." : submitting ? "Submitting..." : "Submit for Review"}
                 <Upload className="w-4 h-4 ml-2" />
               </Button>
             </>

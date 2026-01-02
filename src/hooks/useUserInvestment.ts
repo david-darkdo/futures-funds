@@ -106,11 +106,11 @@ export function useUserInvestment(): UseUserInvestmentReturn {
     fetchData();
   }, [user]);
 
-  // Set up realtime subscription
+  // Set up realtime subscriptions for investments and growth logs
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
+    const investmentChannel = supabase
       .channel("user-investments-changes")
       .on(
         "postgres_changes",
@@ -127,9 +127,34 @@ export function useUserInvestment(): UseUserInvestmentReturn {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(investmentChannel);
     };
   }, [user]);
+
+  // Separate subscription for growth logs (needs investment ID)
+  useEffect(() => {
+    if (!user || !investment) return;
+
+    const logsChannel = supabase
+      .channel(`growth-logs-${investment.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "investment_growth_logs",
+          filter: `investment_id=eq.${investment.id}`,
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(logsChannel);
+    };
+  }, [user, investment?.id]);
 
   return {
     investment,
