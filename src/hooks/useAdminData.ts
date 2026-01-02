@@ -63,11 +63,30 @@ interface Wallet {
   created_at: string | null;
 }
 
+interface UserInvestment {
+  id: string;
+  user_id: string;
+  bundle_id: string;
+  payment_id: string | null;
+  state: "no_investment" | "pending_payment" | "active" | "paused" | "completed";
+  initial_amount: number;
+  current_value: number;
+  growth_percentage: number;
+  admin_note: string | null;
+  last_updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  profile?: Profile;
+  bundle?: Bundle;
+}
+
 interface AdminStats {
   totalUsers: number;
   pendingPayments: number;
   approvedPayments: number;
   pendingWithdrawals: number;
+  totalInvestments: number;
+  activeInvestments: number;
 }
 
 export function useAdminData() {
@@ -77,11 +96,14 @@ export function useAdminData() {
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [investments, setInvestments] = useState<UserInvestment[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     pendingPayments: 0,
     approvedPayments: 0,
     pendingWithdrawals: 0,
+    totalInvestments: 0,
+    activeInvestments: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +152,12 @@ export function useAdminData() {
         .select("*")
         .order("created_at", { ascending: false });
 
+      // Fetch all investments
+      const { data: investmentsData } = await supabase
+        .from("user_investments")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       // Enrich payments with profile and bundle data
       if (paymentsData && profilesData && bundlesData) {
         const profileMap = new Map(profilesData.map((p) => [p.id, p]));
@@ -156,12 +184,29 @@ export function useAdminData() {
         setWithdrawals(enrichedWithdrawals);
       }
 
+      // Enrich investments with profile and bundle data
+      if (investmentsData && profilesData && bundlesData) {
+        const profileMap = new Map(profilesData.map((p) => [p.id, p]));
+        const bundleMap = new Map(bundlesData.map((b) => [b.id, b]));
+
+        const enrichedInvestments = investmentsData.map((i) => ({
+          ...i,
+          state: i.state as UserInvestment["state"],
+          profile: profileMap.get(i.user_id),
+          bundle: bundleMap.get(i.bundle_id),
+        }));
+
+        setInvestments(enrichedInvestments);
+      }
+
       // Calculate stats
       setStats({
         totalUsers: profilesData?.length || 0,
         pendingPayments: paymentsData?.filter((p) => p.status === "pending").length || 0,
         approvedPayments: paymentsData?.filter((p) => p.status === "approved").length || 0,
         pendingWithdrawals: withdrawalsData?.filter((w) => w.status === "pending").length || 0,
+        totalInvestments: investmentsData?.length || 0,
+        activeInvestments: investmentsData?.filter((i) => i.state === "active").length || 0,
       });
     } catch (error) {
       console.error("Error fetching admin data:", error);
@@ -366,12 +411,95 @@ export function useAdminData() {
     return true;
   };
 
+  const applyGrowth = async (
+    investmentId: string,
+    percentageChange: number,
+    changeType: "growth" | "drawdown",
+    note?: string
+  ) => {
+    // Get current investment
+    const investment = investments.find((i) => i.id === investmentId);
+    if (!investment) {
+      toast.error("Investment not found");
+      return false;
+    }
+
+    const balanceBefore = investment.current_value;
+    const multiplier = changeType === "growth" 
+      ? 1 + percentageChange / 100 
+      : 1 - percentageChange / 100;
+    const balanceAfter = balanceBefore * multiplier;
+    const newGrowthPercentage = ((balanceAfter - investment.initial_amount) / investment.initial_amount) * 100;
+
+    // Update investment
+    const { error: updateError } = await supabase
+      .from("user_investments")
+      .update({
+        current_value: balanceAfter,
+        growth_percentage: newGrowthPercentage,
+        admin_note: note || null,
+        last_updated_by: user?.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", investmentId);
+
+    if (updateError) {
+      toast.error("Failed to apply growth");
+      return false;
+    }
+
+    // Log the change
+    const { error: logError } = await supabase.from("investment_growth_logs").insert({
+      investment_id: investmentId,
+      admin_id: user?.id,
+      change_type: changeType,
+      percentage_change: percentageChange,
+      balance_before: balanceBefore,
+      balance_after: balanceAfter,
+      admin_note: note || null,
+    });
+
+    if (logError) {
+      console.error("Failed to log growth change:", logError);
+    }
+
+    toast.success(`${changeType === "growth" ? "Growth" : "Drawdown"} applied successfully`);
+    fetchData();
+    return true;
+  };
+
+  const updateInvestmentState = async (
+    investmentId: string,
+    state: "active" | "paused" | "completed",
+    note?: string
+  ) => {
+    const { error } = await supabase
+      .from("user_investments")
+      .update({
+        state,
+        admin_note: note || null,
+        last_updated_by: user?.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", investmentId);
+
+    if (error) {
+      toast.error("Failed to update investment state");
+      return false;
+    }
+
+    toast.success(`Investment state updated to ${state}`);
+    fetchData();
+    return true;
+  };
+
   return {
     profiles,
     payments,
     withdrawals,
     bundles,
     wallets,
+    investments,
     stats,
     loading,
     refetch: fetchData,
@@ -386,5 +514,7 @@ export function useAdminData() {
     addBundle,
     updateBundle,
     deleteBundle,
+    applyGrowth,
+    updateInvestmentState,
   };
 }
