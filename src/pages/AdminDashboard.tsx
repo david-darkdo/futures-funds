@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import {
   Clock,
   Package,
   TrendingUp,
-  ArrowDownToLine
+  ArrowDownToLine,
+  DollarSign
 } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PaymentsTable } from "@/components/admin/PaymentsTable";
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { 
     payments, 
+    investments,
     stats, 
     loading, 
     approvePayment, 
@@ -29,6 +31,13 @@ export default function AdminDashboard() {
   } = useAdminData();
 
   const pendingPayments = payments.filter(p => p.status === "pending");
+
+  // Calculate total capital under management
+  const totalCapital = useMemo(() => {
+    return investments
+      .filter(i => i.state === "active")
+      .reduce((sum, i) => sum + i.current_value, 0);
+  }, [investments]);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -82,10 +91,10 @@ export default function AdminDashboard() {
         {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {loading ? (
               <>
-                {[...Array(4)].map((_, i) => (
+                {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-xl" />
                 ))}
               </>
@@ -112,10 +121,20 @@ export default function AdminDashboard() {
                 
                 <div className="p-6 rounded-xl bg-card border border-border">
                   <div className="flex items-center justify-between mb-4">
-                    <Package className="w-5 h-5 text-muted-foreground" />
+                    <TrendingUp className="w-5 h-5 text-teal" />
                   </div>
-                  <p className="text-2xl font-bold">{stats.approvedPayments}</p>
+                  <p className="text-2xl font-bold text-teal">{stats.activeInvestments}</p>
                   <p className="text-sm text-muted-foreground">Active Investments</p>
+                </div>
+
+                <div className="p-6 rounded-xl bg-card border border-teal/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <DollarSign className="w-5 h-5 text-teal" />
+                  </div>
+                  <p className="text-2xl font-bold text-teal">
+                    ${totalCapital.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Total Capital</p>
                 </div>
                 
                 <div className="p-6 rounded-xl bg-card border border-border">

@@ -221,17 +221,50 @@ export function useAdminData() {
   }, [fetchData]);
 
   const approvePayment = async (paymentId: string) => {
-    const { error } = await supabase
+    // Get payment details first
+    const payment = payments.find((p) => p.id === paymentId);
+    if (!payment) {
+      toast.error("Payment not found");
+      return false;
+    }
+
+    // Update payment status to approved
+    const { error: paymentError } = await supabase
       .from("payments")
-      .update({ status: "approved", updated_at: new Date().toISOString() })
+      .update({ 
+        status: "approved", 
+        admin_id: user?.id,
+        updated_at: new Date().toISOString() 
+      })
       .eq("id", paymentId);
 
-    if (error) {
+    if (paymentError) {
       toast.error("Failed to approve payment");
       return false;
     }
 
-    toast.success("Payment approved successfully");
+    // Create user_investments record
+    const bundlePrice = payment.bundle?.price_usd || 0;
+    const { error: investmentError } = await supabase
+      .from("user_investments")
+      .insert({
+        user_id: payment.user_id,
+        bundle_id: payment.bundle_id,
+        payment_id: paymentId,
+        initial_amount: bundlePrice,
+        current_value: bundlePrice,
+        growth_percentage: 0,
+        state: "active",
+      });
+
+    if (investmentError) {
+      console.error("Failed to create investment:", investmentError);
+      // Don't fail the whole operation, payment is still approved
+      toast.warning("Payment approved but investment record may need manual creation");
+    } else {
+      toast.success("Payment approved and investment activated!");
+    }
+
     fetchData();
     return true;
   };

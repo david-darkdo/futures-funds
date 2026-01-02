@@ -244,15 +244,28 @@ export function PaymentsTable({ payments, onApprove, onReject, showAll = false }
               )}
               {selectedPayment.proof_url && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Payment Proof</p>
-                  <a
-                    href={selectedPayment.proof_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-gold hover:underline"
-                  >
-                    View Proof <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <p className="text-sm text-muted-foreground mb-2">Payment Proof</p>
+                  <div className="rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={selectedPayment.proof_url}
+                      alt="Payment proof"
+                      className="w-full max-h-64 object-contain bg-secondary"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden p-4 text-center">
+                      <a
+                        href={selectedPayment.proof_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-gold hover:underline"
+                      >
+                        View Proof <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
               {selectedPayment.admin_note && (
