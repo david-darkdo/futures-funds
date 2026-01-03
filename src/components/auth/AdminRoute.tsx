@@ -1,17 +1,26 @@
+import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requireAdmin?: boolean;
+interface AdminRouteProps {
+  children: ReactNode;
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+export function AdminRoute({ children }: AdminRouteProps) {
   const { user, role, loading } = useAuth();
   const location = useLocation();
 
-  // Show loading while auth is initializing
+  useEffect(() => {
+    console.log("[AdminRoute] state", {
+      loading,
+      userId: user?.id ?? null,
+      role,
+      path: location.pathname,
+    });
+  }, [loading, role, user?.id, location.pathname]);
+
+  // 1) Loading
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -23,31 +32,24 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  // Not logged in - redirect to login
+  // 2) Not logged in
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Admin route but user is not admin - redirect to dashboard start
-  if (requireAdmin && role !== "admin") {
-    console.log(
-      "[ProtectedRoute] Admin required but role is:",
-      role,
-      "- redirecting to /dashboard/start"
-    );
-    return <Navigate to="/dashboard/start" replace />;
-  }
-
-  return (
-    <>
-      {/* Admin mode indicator */}
-      {role === "admin" && (
+  // 3) Authorized
+  if (role === "admin") {
+    return (
+      <>
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-gold/20 border border-gold/40 text-gold px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
           <Shield className="w-4 h-4" />
           ADMIN MODE ACTIVE
         </div>
-      )}
-      {children}
-    </>
-  );
+        {children}
+      </>
+    );
+  }
+
+  // 4) Unauthorized
+  return <Navigate to="/dashboard/start" replace />;
 }
