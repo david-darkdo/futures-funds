@@ -22,53 +22,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
 
-    if (!error && data) {
-      setRole(data.role as UserRole);
-    } else {
-      setRole("user");
+      if (!error && data) {
+        const fetchedRole = data.role as UserRole;
+        console.log("[Auth] Fetched role for user:", userId, "->", fetchedRole);
+        return fetchedRole;
+      } else {
+        console.log("[Auth] No role found or error, defaulting to user:", error?.message);
+        return "user";
+      }
+    } catch (err) {
+      console.error("[Auth] Error fetching role:", err);
+      return "user";
     }
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let isMounted = true;
 
-        // Defer role fetching with setTimeout to prevent deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
+    const initializeAuth = async () => {
+      try {
+        // Get existing session first
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+
+        if (existingSession?.user) {
+          setSession(existingSession);
+          setUser(existingSession.user);
+          
+          // Fetch role BEFORE setting loading to false
+          const userRole = await fetchUserRole(existingSession.user.id);
+          if (isMounted) {
+            setRole(userRole);
+          }
+        }
+        
+        if (isMounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("[Auth] Initialization error:", error);
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log("[Auth] Auth state changed:", event);
+        
+        if (!isMounted) return;
+
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user) {
+          // For sign in events, fetch role immediately
+          if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+            const userRole = await fetchUserRole(newSession.user.id);
+            if (isMounted) {
+              setRole(userRole);
+            }
+          }
         } else {
           setRole(null);
-        }
-
-        if (event === "INITIAL_SESSION") {
-          setLoading(false);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      }
-      setLoading(false);
-    });
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
