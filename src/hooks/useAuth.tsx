@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,30 +16,56 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function withTimeout<T>(promiseLike: PromiseLike<T>, ms: number, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const promise = Promise.resolve(promiseLike);
+
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${ms}ms`));
+    }, ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  }) as Promise<T>;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Cache which userId the current `role` belongs to, so we only fetch once per session/user.
+  const roleUserIdRef = useRef<string | null>(null);
+
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .single();
+      const res = await withTimeout(
+        Promise.resolve(
+          supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle()
+        ),
+        8000,
+        "fetchUserRole"
+      );
 
-      if (!error && data) {
-        const fetchedRole = data.role as UserRole;
-        console.log("[Auth] Fetched role for user:", userId, "->", fetchedRole);
-        return fetchedRole;
-      } else {
-        console.log("[Auth] No role found or error, defaulting to user:", error?.message);
+      if (res.error) {
+        console.log("[Auth] Role query error, defaulting to user:", res.error.message);
         return "user";
       }
+
+      if (res.data?.role) {
+        const fetchedRole = res.data.role as UserRole;
+        console.log("[Auth] Fetched role for user:", userId, "->", fetchedRole);
+        return fetchedRole;
+      }
+
+      console.log("[Auth] No role row found, treating as unauthorized (user)");
+      return "user";
     } catch (err) {
-      console.error("[Auth] Error fetching role:", err);
+      console.error("[Auth] Error fetching role (timeout or other):", err);
       return "user";
     }
   };
@@ -47,58 +73,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    const setLoadingSafe = (value: boolean) => {
+      if (!isMounted) return;
+      console.log("[Auth] loading ->", value);
+      setLoading(value);
+    };
+
+    const resolveRoleForUser = async (userId: string) => {
+      console.log("[Auth] Resolving role for user:", userId);
+      const userRole = await fetchUserRole(userId);
+
+      if (!isMounted) return;
+      roleUserIdRef.current = userId;
+      setRole(userRole);
+      console.log("[Auth] Role set ->", userRole);
+    };
+
     const initializeAuth = async () => {
+      setLoadingSafe(true);
+      console.log("[Auth] initializeAuth start");
+
       try {
-        // Get existing session first
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
+        const {
+          data: { session: existingSession },
+        } = await supabase.auth.getSession();
+
         if (!isMounted) return;
 
+        setSession(existingSession);
+        setUser(existingSession?.user ?? null);
+
         if (existingSession?.user) {
-          setSession(existingSession);
-          setUser(existingSession.user);
-          
-          // Fetch role BEFORE setting loading to false
-          const userRole = await fetchUserRole(existingSession.user.id);
-          if (isMounted) {
-            setRole(userRole);
-          }
-        }
-        
-        if (isMounted) {
-          setLoading(false);
+          await resolveRoleForUser(existingSession.user.id);
+        } else {
+          roleUserIdRef.current = null;
+          setRole(null);
         }
       } catch (error) {
         console.error("[Auth] Initialization error:", error);
-        if (isMounted) {
-          setLoading(false);
-        }
+      } finally {
+        setLoadingSafe(false);
+        console.log("[Auth] initializeAuth done");
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log("[Auth] Auth state changed:", event);
-        
-        if (!isMounted) return;
+    // Listener MUST be synchronous; role fetching is deferred to avoid auth deadlocks.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("[Auth] Auth state changed:", event);
 
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
+      if (!isMounted) return;
 
-        if (newSession?.user) {
-          // For sign in events, fetch role immediately
-          if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-            const userRole = await fetchUserRole(newSession.user.id);
-            if (isMounted) {
-              setRole(userRole);
-            }
-          }
-        } else {
-          setRole(null);
-        }
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+
+      if (!newSession?.user) {
+        roleUserIdRef.current = null;
+        setRole(null);
+        setLoadingSafe(false);
+        return;
       }
-    );
+
+      const userId = newSession.user.id;
+
+      // Only fetch if we don't already have a cached role for this user.
+      if (roleUserIdRef.current === userId) {
+        setLoadingSafe(false);
+        return;
+      }
+
+      setLoadingSafe(true);
+      setTimeout(() => {
+        resolveRoleForUser(userId)
+          .catch((e) => console.error("[Auth] resolveRoleForUser failed:", e))
+          .finally(() => setLoadingSafe(false));
+      }, 0);
+    });
 
     initializeAuth();
 
