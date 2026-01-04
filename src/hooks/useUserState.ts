@@ -26,7 +26,15 @@ export function useUserState(): UserStateData {
     const fetchState = async () => {
       setLoading(true);
 
-      // Check for pending payments
+      // Check for active investment in user_investments table
+      const { data: activeInvestments } = await supabase
+        .from("user_investments")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("state", "active")
+        .limit(1);
+
+      // Check for pending payments (not yet approved)
       const { data: pendingPayments } = await supabase
         .from("payments")
         .select("id")
@@ -34,20 +42,41 @@ export function useUserState(): UserStateData {
         .eq("status", "pending")
         .limit(1);
 
-      // Check for approved payments (active investment)
-      const { data: approvedPayments } = await supabase
-        .from("payments")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "approved")
-        .limit(1);
-
+      setHasActiveInvestment((activeInvestments?.length ?? 0) > 0);
       setHasPendingPayment((pendingPayments?.length ?? 0) > 0);
-      setHasActiveInvestment((approvedPayments?.length ?? 0) > 0);
       setLoading(false);
     };
 
     fetchState();
+
+    // Set up real-time subscriptions to update state when changes occur
+    const investmentChannel = supabase
+      .channel('user-investment-state')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_investments',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => fetchState()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => fetchState()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(investmentChannel);
+    };
   }, [user]);
 
   const state = useMemo((): UserDashboardState => {
