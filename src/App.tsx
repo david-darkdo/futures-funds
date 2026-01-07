@@ -16,6 +16,7 @@ import DashboardIndex from "./pages/dashboard/DashboardIndex";
 import DashboardStart from "./pages/dashboard/DashboardStart";
 import DashboardPending from "./pages/dashboard/DashboardPending";
 import DashboardPortfolio from "./pages/dashboard/DashboardPortfolio";
+import DashboardTransactions from "./pages/dashboard/DashboardTransactions";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPayments from "./pages/AdminPayments";
 import AdminInvestments from "./pages/AdminInvestments";
@@ -63,6 +64,14 @@ const App = () => (
                 element={
                   <DashboardRoute requiredState="portfolio">
                     <DashboardPortfolio />
+                  </DashboardRoute>
+                } 
+              />
+              <Route 
+                path="transactions" 
+                element={
+                  <DashboardRoute requiredState="portfolio">
+                    <DashboardTransactions />
                   </DashboardRoute>
                 } 
               />

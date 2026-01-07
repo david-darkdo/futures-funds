@@ -245,7 +245,7 @@ export function useAdminData() {
 
     // Create user_investments record
     const bundlePrice = payment.bundle?.price_usd || 0;
-    const { error: investmentError } = await supabase
+    const { data: investmentData, error: investmentError } = await supabase
       .from("user_investments")
       .insert({
         user_id: payment.user_id,
@@ -255,13 +255,24 @@ export function useAdminData() {
         current_value: bundlePrice,
         growth_percentage: 0,
         state: "active",
-      });
+      })
+      .select()
+      .single();
 
     if (investmentError) {
       console.error("Failed to create investment:", investmentError);
-      // Don't fail the whole operation, payment is still approved
       toast.warning("Payment approved but investment record may need manual creation");
     } else {
+      // Log deposit transaction
+      await supabase.from("transactions").insert({
+        user_id: payment.user_id,
+        investment_id: investmentData.id,
+        type: "deposit",
+        amount: bundlePrice,
+        balance_after: bundlePrice,
+        description: `Initial investment - ${payment.bundle?.name || "Investment Bundle"}`,
+      });
+
       toast.success("Payment approved and investment activated!");
     }
 
@@ -290,6 +301,13 @@ export function useAdminData() {
   };
 
   const approveWithdrawal = async (withdrawalId: string, txid?: string) => {
+    // Get withdrawal details
+    const withdrawal = withdrawals.find((w) => w.id === withdrawalId);
+    if (!withdrawal) {
+      toast.error("Withdrawal not found");
+      return false;
+    }
+
     const { error } = await supabase
       .from("withdrawals")
       .update({
@@ -303,6 +321,34 @@ export function useAdminData() {
     if (error) {
       toast.error("Failed to approve withdrawal");
       return false;
+    }
+
+    // Get user's active investment to get current balance
+    const userInvestment = investments.find(
+      (i) => i.user_id === withdrawal.user_id && i.state === "active"
+    );
+    
+    if (userInvestment) {
+      const newBalance = userInvestment.current_value - withdrawal.amount;
+      
+      // Update investment current value
+      await supabase
+        .from("user_investments")
+        .update({ 
+          current_value: newBalance,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userInvestment.id);
+
+      // Log withdrawal transaction
+      await supabase.from("transactions").insert({
+        user_id: withdrawal.user_id,
+        investment_id: userInvestment.id,
+        type: "withdrawal",
+        amount: withdrawal.amount,
+        balance_after: newBalance,
+        description: `Withdrawal processed - ${withdrawal.currency} to ${withdrawal.network}`,
+      });
     }
 
     toast.success("Withdrawal approved successfully");
@@ -463,6 +509,7 @@ export function useAdminData() {
       : 1 - percentageChange / 100;
     const balanceAfter = balanceBefore * multiplier;
     const newGrowthPercentage = ((balanceAfter - investment.initial_amount) / investment.initial_amount) * 100;
+    const amountChange = Math.abs(balanceAfter - balanceBefore);
 
     // Update investment
     const { error: updateError } = await supabase
@@ -481,7 +528,7 @@ export function useAdminData() {
       return false;
     }
 
-    // Log the change
+    // Log the change in investment_growth_logs
     const { error: logError } = await supabase.from("investment_growth_logs").insert({
       investment_id: investmentId,
       admin_id: user?.id,
@@ -495,6 +542,19 @@ export function useAdminData() {
     if (logError) {
       console.error("Failed to log growth change:", logError);
     }
+
+    // Log transaction for user history
+    await supabase.from("transactions").insert({
+      user_id: investment.user_id,
+      investment_id: investmentId,
+      type: changeType,
+      amount: amountChange,
+      percentage_change: percentageChange,
+      balance_after: balanceAfter,
+      description: changeType === "growth" 
+        ? `Company Performance Update: +${percentageChange}%`
+        : `Company Performance Update: -${percentageChange}%`,
+    });
 
     toast.success(`${changeType === "growth" ? "Growth" : "Drawdown"} applied successfully`);
     fetchData();
