@@ -64,6 +64,7 @@ export default function DashboardLayout() {
   const getPageTitle = () => {
     if (location.pathname.includes("/start")) return "Get Started";
     if (location.pathname.includes("/pending")) return "Payment Status";
+    if (location.pathname.includes("/transactions")) return "Transaction History";
     return "Portfolio Overview";
   };
 

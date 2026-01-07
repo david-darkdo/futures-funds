@@ -68,7 +68,7 @@ export default function DashboardPending() {
       completed: true
     },
     {
-      title: "Under Review",
+      title: "Management Review",
       description: "Our team is verifying your payment",
       completed: false,
       active: true
@@ -99,10 +99,10 @@ export default function DashboardPending() {
             <Clock className="w-8 h-8 text-gold" />
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-4">
-            Payment Under Review
+            CEO Review Pending
           </h1>
           <p className="text-muted-foreground text-lg">
-            Your payment is being verified by our team. This usually takes 1-24 hours.
+            Your payment is being verified by our management team. This usually takes 1-24 hours.
           </p>
         </div>
 

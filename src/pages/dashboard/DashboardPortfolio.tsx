@@ -2,29 +2,37 @@ import { useState, useMemo } from "react";
 import { Plus, ArrowDownToLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserInvestment, generateChartDataFromLogs } from "@/hooks/useUserInvestment";
+import { useTransactions, generateChartFromTransactions, calculatePortfolioMetrics } from "@/hooks/useTransactions";
 import { CapitalOverview } from "@/components/dashboard/CapitalOverview";
 import { CircularGrowthIndicator } from "@/components/dashboard/CircularGrowthIndicator";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { ProfitTicker } from "@/components/dashboard/ProfitTicker";
-import { ActivityTimeline, generateTimelineEvents } from "@/components/dashboard/ActivityTimeline";
 import { MessagingPanel } from "@/components/dashboard/MessagingPanel";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function DashboardPortfolio() {
   const { investment, growthLogs, loading } = useUserInvestment();
+  const { transactions, loading: transactionsLoading } = useTransactions();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
 
-  // Generate chart data from growth logs
+  // Generate chart data from transactions (preferred) or growth logs (fallback)
   const chartData = useMemo(() => {
+    if (transactions.length > 0) {
+      return generateChartFromTransactions(transactions);
+    }
     if (!investment) return [];
     return generateChartDataFromLogs(
       investment.initial_amount,
       investment.created_at,
       growthLogs
     );
-  }, [investment, growthLogs]);
+  }, [transactions, investment, growthLogs]);
+
+  // Calculate portfolio metrics from transactions
+  const metrics = useMemo(() => calculatePortfolioMetrics(transactions), [transactions]);
 
   // Calculate daily change from most recent log
   const dailyChange = useMemo(() => {
@@ -69,7 +77,7 @@ export default function DashboardPortfolio() {
       events.push({
         id: log.id,
         type: log.change_type === "growth" ? "growth" : "system",
-        title: log.change_type === "growth" ? "Growth Applied" : "Drawdown Applied",
+        title: "Company Performance Update",
         description: `${log.change_type === "growth" ? "+" : "-"}${log.percentage_change}% - Balance: $${log.balance_after.toLocaleString()}`,
         date: log.created_at,
         amount: log.balance_after - log.balance_before,

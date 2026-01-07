@@ -59,7 +59,7 @@ export function generateTimelineEvents(
         id: `${payment.id}-submitted`,
         type: "payment_submitted",
         title: "Payment Submitted",
-        description: "Awaiting verification from our team",
+        description: "Awaiting verification from management",
         date: payment.created_at
       });
 
@@ -68,7 +68,7 @@ export function generateTimelineEvents(
         events.push({
           id: `${payment.id}-approved`,
           type: "payment_approved",
-          title: "Payment Approved",
+          title: "Approved by Company",
           description: "Your investment is now active and compounding",
           date: payment.created_at
         });
@@ -76,7 +76,7 @@ export function generateTimelineEvents(
         events.push({
           id: `${payment.id}-pending`,
           type: "pending",
-          title: "Verification In Progress",
+          title: "Management Review",
           description: "Your payment is being reviewed",
           date: payment.created_at
         });

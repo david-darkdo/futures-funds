@@ -218,6 +218,50 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          investment_id: string | null
+          percentage_change: number | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          investment_id?: string | null
+          percentage_change?: number | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          investment_id?: string | null
+          percentage_change?: number | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_investments: {
         Row: {
           admin_note: string | null
@@ -381,6 +425,7 @@ export type Database = {
         | "active"
         | "paused"
         | "completed"
+      transaction_type: "deposit" | "growth" | "drawdown" | "withdrawal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -516,6 +561,7 @@ export const Constants = {
         "paused",
         "completed",
       ],
+      transaction_type: ["deposit", "growth", "drawdown", "withdrawal"],
     },
   },
 } as const

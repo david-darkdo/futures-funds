@@ -8,7 +8,9 @@ import {
   Briefcase,
   LogOut,
   X,
-  LockKeyhole
+  LockKeyhole,
+  Home,
+  Receipt
 } from "lucide-react";
 import { cn, maskEmail } from "@/lib/utils";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
@@ -27,7 +29,15 @@ const sidebarLinks: {
   href: string;
   icon: typeof Rocket;
   allowedStates: UserDashboardState[];
+  external?: boolean;
 }[] = [
+  {
+    name: "Homepage",
+    href: "/",
+    icon: Home,
+    allowedStates: ["start", "pending", "portfolio", "loading"],
+    external: true,
+  },
   { 
     name: "Get Started", 
     href: "/dashboard/start", 
@@ -44,6 +54,12 @@ const sidebarLinks: {
     name: "My Portfolio", 
     href: "/dashboard/portfolio", 
     icon: Briefcase,
+    allowedStates: ["portfolio"]
+  },
+  { 
+    name: "Transaction History", 
+    href: "/dashboard/transactions", 
+    icon: Receipt,
     allowedStates: ["portfolio"]
   },
 ];
@@ -136,7 +152,7 @@ export function DashboardSidebar({
           <nav className="flex-1 p-4 space-y-1">
             {sidebarLinks.map((link) => {
               const isActive = isLinkActive(link.href);
-              const isAccessible = isLinkAccessible(link.allowedStates);
+              const isAccessible = link.external || isLinkAccessible(link.allowedStates);
               
               return (
                 <div key={link.name} className="relative">
@@ -146,7 +162,7 @@ export function DashboardSidebar({
                       onClick={onClose}
                       className={cn(
                         "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                        isActive 
+                        isActive && !link.external
                           ? "bg-gold/10 text-gold border border-gold/20" 
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       )}
