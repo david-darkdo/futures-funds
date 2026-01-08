@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, TrendingUp, DollarSign, Percent } from "lucide-react";
 import { toast } from "sonner";
+import { validateNumber, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Bundle {
   id: string;
@@ -78,10 +79,22 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
       return;
     }
 
+    // Validate price
+    const priceValidation = validateNumber(priceUsd, {
+      fieldName: "Bundle price",
+      min: VALIDATION_LIMITS.BUNDLE_PRICE.MIN,
+      max: VALIDATION_LIMITS.BUNDLE_PRICE.MAX,
+    });
+
+    if (!priceValidation.isValid) {
+      toast.error(priceValidation.error || "Invalid price");
+      return;
+    }
+
     const success = await onAdd({
       name,
       slug,
-      price_usd: parseFloat(priceUsd),
+      price_usd: priceValidation.value,
       description: description || null,
       daily_growth_rate: dailyGrowthRate[0],
       active: isActive,
@@ -99,10 +112,22 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
       return;
     }
 
+    // Validate price
+    const priceValidation = validateNumber(priceUsd, {
+      fieldName: "Bundle price",
+      min: VALIDATION_LIMITS.BUNDLE_PRICE.MIN,
+      max: VALIDATION_LIMITS.BUNDLE_PRICE.MAX,
+    });
+
+    if (!priceValidation.isValid) {
+      toast.error(priceValidation.error || "Invalid price");
+      return;
+    }
+
     const success = await onUpdate(selectedBundle.id, {
       name,
       slug,
-      price_usd: parseFloat(priceUsd),
+      price_usd: priceValidation.value,
       description: description || null,
       daily_growth_rate: dailyGrowthRate[0],
       active: isActive,

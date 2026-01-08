@@ -30,6 +30,8 @@ import { TrendingUp, TrendingDown, Edit, Eye, Search, Download } from "lucide-re
 import { maskEmail, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { InvestmentStatusBadge } from "@/components/dashboard/InvestmentStatusBadge";
+import { validateNumber, VALIDATION_LIMITS } from "@/lib/validation";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -96,10 +98,23 @@ export function InvestmentsTable({
 
   const handleApplyGrowth = async () => {
     if (!selectedInvestment || !percentageChange) return;
+
+    // Validate percentage
+    const percentValidation = validateNumber(percentageChange, {
+      fieldName: "Percentage change",
+      min: VALIDATION_LIMITS.PERCENTAGE.MIN,
+      max: VALIDATION_LIMITS.PERCENTAGE.MAX,
+    });
+
+    if (!percentValidation.isValid) {
+      toast.error(percentValidation.error || "Invalid percentage");
+      return;
+    }
+
     setProcessing(true);
     await onApplyGrowth(
       selectedInvestment.id,
-      parseFloat(percentageChange),
+      percentValidation.value,
       growthType,
       adminNote || undefined
     );

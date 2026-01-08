@@ -21,6 +21,7 @@ import { ArrowDownToLine, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { validateNumber, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Wallet {
   id: string;
@@ -75,8 +76,17 @@ export function WithdrawalRequestDialog({
     }
   }, [open]);
 
-  const parsedAmount = parseFloat(amount) || 0;
-  const isValidAmount = parsedAmount > 0 && parsedAmount <= availableBalance;
+  // Validate amount with proper checks
+  const amountValidation = amount.trim() 
+    ? validateNumber(amount, {
+        fieldName: "Withdrawal amount",
+        min: VALIDATION_LIMITS.WITHDRAWAL_AMOUNT.MIN,
+        max: Math.min(VALIDATION_LIMITS.WITHDRAWAL_AMOUNT.MAX, availableBalance),
+      })
+    : { isValid: false, value: 0, error: "Amount is required" };
+  
+  const parsedAmount = amountValidation.value;
+  const isValidAmount = amountValidation.isValid;
 
   const handleSubmit = async () => {
     if (!user || !amount || !walletAddress || !network || !currency) {
@@ -85,7 +95,7 @@ export function WithdrawalRequestDialog({
     }
 
     if (!isValidAmount) {
-      toast.error("Invalid withdrawal amount");
+      toast.error(amountValidation.error || "Invalid withdrawal amount");
       return;
     }
 
