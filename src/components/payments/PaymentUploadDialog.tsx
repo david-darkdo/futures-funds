@@ -161,10 +161,10 @@ export function PaymentUploadDialog({
         throw uploadError;
       }
 
-      // Get the signed URL for the uploaded file
+      // Get the signed URL for the uploaded file (7 days expiration for payment verification)
       const { data: signedData, error: signError } = await supabase.storage
         .from("payment-proofs")
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+        .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7 days
 
       if (signError) {
         console.error("Signed URL error:", signError);
