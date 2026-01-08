@@ -12,14 +12,13 @@ import {
   Home,
   Receipt
 } from "lucide-react";
-import { cn, maskEmail } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
 
 interface DashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   userName: string | null;
-  userEmail: string | null;
   loading?: boolean;
   onSignOut: () => void;
 }
@@ -68,13 +67,12 @@ export function DashboardSidebar({
   isOpen,
   onClose,
   userName,
-  userEmail,
   loading = false,
   onSignOut
 }: DashboardSidebarProps) {
   const location = useLocation();
   const { state: userState, loading: stateLoading } = useUserState();
-  const displayName = userName || userEmail || "User";
+  const displayName = userName || "User";
 
   const isLinkActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + "/");
@@ -140,9 +138,6 @@ export function DashboardSidebar({
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium text-foreground truncate">{displayName}</p>
-                  {userEmail && userName && (
-                    <p className="text-sm text-muted-foreground truncate">{maskEmail(userEmail)}</p>
-                  )}
                 </div>
               </div>
             )}
