@@ -28,7 +28,7 @@ const steps = [
   {
     icon: CheckCircle,
     step: "05",
-    title: "Admin Verifies",
+    title: "Management Verifies",
     description: "Our team manually reviews and approves your payment.",
   },
   {
