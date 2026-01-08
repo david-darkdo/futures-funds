@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit2, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { validateWalletAddress } from "@/lib/validation";
 
 interface Wallet {
   id: string;
@@ -92,8 +93,21 @@ export function WalletManager({ wallets, onAdd, onUpdate, onDelete }: WalletMana
       return;
     }
 
+    // Validate wallet address format
+    const validation = validateWalletAddress(address, network);
+    if (!validation.isValid) {
+      toast.error(validation.error || "Invalid wallet address format");
+      return;
+    }
+
     setProcessing(true);
-    const success = await onAdd({ address, network, currency, label: label || null, active });
+    const success = await onAdd({ 
+      address: validation.sanitizedValue, 
+      network, 
+      currency, 
+      label: label || null, 
+      active 
+    });
     if (success) {
       resetForm();
       setAddDialogOpen(false);
@@ -104,8 +118,21 @@ export function WalletManager({ wallets, onAdd, onUpdate, onDelete }: WalletMana
   const handleEdit = async () => {
     if (!editWallet) return;
 
+    // Validate wallet address format
+    const validation = validateWalletAddress(address, network);
+    if (!validation.isValid) {
+      toast.error(validation.error || "Invalid wallet address format");
+      return;
+    }
+
     setProcessing(true);
-    await onUpdate(editWallet.id, { address, network, currency, label: label || null, active });
+    await onUpdate(editWallet.id, { 
+      address: validation.sanitizedValue, 
+      network, 
+      currency, 
+      label: label || null, 
+      active 
+    });
     resetForm();
     setEditWallet(null);
     setProcessing(false);
@@ -195,7 +222,13 @@ export function WalletManager({ wallets, onAdd, onUpdate, onDelete }: WalletMana
                   placeholder="Enter wallet address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  maxLength={256}
                 />
+                {address && network && !validateWalletAddress(address, network).isValid && (
+                  <p className="text-xs text-destructive">
+                    {validateWalletAddress(address, network).error}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="label">Label (optional)</Label>
@@ -354,7 +387,13 @@ export function WalletManager({ wallets, onAdd, onUpdate, onDelete }: WalletMana
               <Input
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                maxLength={256}
               />
+              {address && network && !validateWalletAddress(address, network).isValid && (
+                <p className="text-xs text-destructive">
+                  {validateWalletAddress(address, network).error}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Label</Label>

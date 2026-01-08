@@ -21,7 +21,7 @@ import { ArrowDownToLine, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { validateNumber, VALIDATION_LIMITS } from "@/lib/validation";
+import { validateNumber, validateWalletAddress, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Wallet {
   id: string;
@@ -88,6 +88,11 @@ export function WithdrawalRequestDialog({
   const parsedAmount = amountValidation.value;
   const isValidAmount = amountValidation.isValid;
 
+  // Validate wallet address based on selected network
+  const walletValidation = walletAddress.trim() && network
+    ? validateWalletAddress(walletAddress, network)
+    : { isValid: false, error: "Wallet address is required", sanitizedValue: "" };
+
   const handleSubmit = async () => {
     if (!user || !amount || !walletAddress || !network || !currency) {
       toast.error("Please fill in all fields");
@@ -99,12 +104,17 @@ export function WithdrawalRequestDialog({
       return;
     }
 
+    if (!walletValidation.isValid) {
+      toast.error(walletValidation.error || "Invalid wallet address");
+      return;
+    }
+
     setSubmitting(true);
 
     const { error } = await supabase.from("withdrawals").insert({
       user_id: user.id,
       amount: parsedAmount,
-      wallet_address: walletAddress,
+      wallet_address: walletValidation.sanitizedValue,
       network,
       currency,
       status: "pending",
@@ -196,7 +206,11 @@ export function WithdrawalRequestDialog({
               placeholder="Enter your wallet address"
               value={walletAddress}
               onChange={(e) => setWalletAddress(e.target.value)}
+              maxLength={256}
             />
+            {walletAddress && network && !walletValidation.isValid && (
+              <p className="text-xs text-destructive">{walletValidation.error}</p>
+            )}
           </div>
 
           <div className="p-4 rounded-lg border border-gold/20 bg-gold/5">
@@ -221,7 +235,7 @@ export function WithdrawalRequestDialog({
           <Button
             variant="gold"
             onClick={handleSubmit}
-            disabled={submitting || !isValidAmount || !walletAddress || !network || !currency}
+            disabled={submitting || !isValidAmount || !walletValidation.isValid || !network || !currency}
           >
             {submitting ? "Submitting..." : "Request Withdrawal"}
             <ArrowDownToLine className="w-4 h-4 ml-2" />

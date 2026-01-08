@@ -141,4 +141,165 @@ export const VALIDATION_LIMITS = {
     MIN: 0.01,
     MAX: 1000, // 1000% max change
   },
+  WALLET_ADDRESS: {
+    MIN_LENGTH: 20,
+    MAX_LENGTH: 256,
+  },
+  TRANSACTION_ID: {
+    MIN_LENGTH: 10,
+    MAX_LENGTH: 256,
+  },
 } as const;
+
+/**
+ * Wallet address validation patterns by network
+ */
+const WALLET_PATTERNS: Record<string, RegExp> = {
+  ethereum: /^0x[a-fA-F0-9]{40}$/,
+  bsc: /^0x[a-fA-F0-9]{40}$/,
+  polygon: /^0x[a-fA-F0-9]{40}$/,
+  bitcoin: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/,
+  tron: /^T[a-zA-HJ-NP-Z0-9]{33}$/,
+  solana: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+};
+
+/**
+ * Transaction ID validation patterns by network
+ */
+const TXID_PATTERNS: Record<string, RegExp> = {
+  ethereum: /^0x[a-fA-F0-9]{64}$/,
+  bsc: /^0x[a-fA-F0-9]{64}$/,
+  polygon: /^0x[a-fA-F0-9]{64}$/,
+  bitcoin: /^[a-fA-F0-9]{64}$/,
+  tron: /^[a-fA-F0-9]{64}$/,
+  solana: /^[1-9A-HJ-NP-Za-km-z]{87,88}$/,
+};
+
+export interface WalletValidationResult {
+  isValid: boolean;
+  error?: string;
+  sanitizedValue: string;
+}
+
+/**
+ * Validates a wallet address for a specific network.
+ * Returns sanitized value on success.
+ */
+export function validateWalletAddress(
+  address: string,
+  network: string
+): WalletValidationResult {
+  const trimmed = address.trim();
+
+  // Check for empty
+  if (!trimmed) {
+    return {
+      isValid: false,
+      error: "Wallet address is required",
+      sanitizedValue: "",
+    };
+  }
+
+  // Check length limits
+  if (trimmed.length < VALIDATION_LIMITS.WALLET_ADDRESS.MIN_LENGTH) {
+    return {
+      isValid: false,
+      error: `Wallet address must be at least ${VALIDATION_LIMITS.WALLET_ADDRESS.MIN_LENGTH} characters`,
+      sanitizedValue: trimmed,
+    };
+  }
+
+  if (trimmed.length > VALIDATION_LIMITS.WALLET_ADDRESS.MAX_LENGTH) {
+    return {
+      isValid: false,
+      error: `Wallet address must not exceed ${VALIDATION_LIMITS.WALLET_ADDRESS.MAX_LENGTH} characters`,
+      sanitizedValue: trimmed,
+    };
+  }
+
+  // Check for dangerous characters (prevent injection)
+  if (/[<>"'&;{}()\\]/.test(trimmed)) {
+    return {
+      isValid: false,
+      error: "Wallet address contains invalid characters",
+      sanitizedValue: trimmed,
+    };
+  }
+
+  // Check format for known networks
+  const pattern = WALLET_PATTERNS[network.toLowerCase()];
+  if (pattern && !pattern.test(trimmed)) {
+    return {
+      isValid: false,
+      error: `Invalid wallet address format for ${network}`,
+      sanitizedValue: trimmed,
+    };
+  }
+
+  return {
+    isValid: true,
+    sanitizedValue: trimmed,
+  };
+}
+
+/**
+ * Validates a transaction ID for a specific network.
+ * Returns sanitized value on success.
+ */
+export function validateTransactionId(
+  txid: string,
+  network?: string
+): WalletValidationResult {
+  const trimmed = txid.trim();
+
+  // Empty is allowed for optional fields
+  if (!trimmed) {
+    return {
+      isValid: true,
+      sanitizedValue: "",
+    };
+  }
+
+  // Check length limits
+  if (trimmed.length < VALIDATION_LIMITS.TRANSACTION_ID.MIN_LENGTH) {
+    return {
+      isValid: false,
+      error: `Transaction ID must be at least ${VALIDATION_LIMITS.TRANSACTION_ID.MIN_LENGTH} characters`,
+      sanitizedValue: trimmed,
+    };
+  }
+
+  if (trimmed.length > VALIDATION_LIMITS.TRANSACTION_ID.MAX_LENGTH) {
+    return {
+      isValid: false,
+      error: `Transaction ID must not exceed ${VALIDATION_LIMITS.TRANSACTION_ID.MAX_LENGTH} characters`,
+      sanitizedValue: trimmed,
+    };
+  }
+
+  // Check for dangerous characters (prevent injection)
+  if (/[<>"'&;{}()\\]/.test(trimmed)) {
+    return {
+      isValid: false,
+      error: "Transaction ID contains invalid characters",
+      sanitizedValue: trimmed,
+    };
+  }
+
+  // Check format for known networks if provided
+  if (network) {
+    const pattern = TXID_PATTERNS[network.toLowerCase()];
+    if (pattern && !pattern.test(trimmed)) {
+      return {
+        isValid: false,
+        error: `Invalid transaction ID format for ${network}`,
+        sanitizedValue: trimmed,
+      };
+    }
+  }
+
+  return {
+    isValid: true,
+    sanitizedValue: trimmed,
+  };
+}
