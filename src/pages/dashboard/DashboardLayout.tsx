@@ -3,7 +3,7 @@ import { Menu, Plus, ArrowDownToLine, CheckCircle, Clock, AlertCircle } from "lu
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { cn, maskEmail } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData, calculateGrowth } from "@/hooks/useDashboardData";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -58,7 +58,7 @@ export default function DashboardLayout() {
 
   const accountStatus = activePayment ? "active" : payments.length > 0 ? "pending" : "inactive";
   const StatusIcon = getStatusIcon(accountStatus);
-  const displayName = profile?.full_name || maskEmail(profile?.email) || "Investor";
+  const displayName = profile?.full_name || "Investor";
 
   // Determine page title based on route
   const getPageTitle = () => {
@@ -74,7 +74,6 @@ export default function DashboardLayout() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userName={profile?.full_name || null}
-        userEmail={profile?.email || null}
         loading={loading}
         onSignOut={handleSignOut}
       />
