@@ -22,6 +22,7 @@ import { Copy, CheckCircle, Upload, ArrowRight, ImageIcon, X } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { validateOptionalNumber, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Bundle {
   id: string;
@@ -190,6 +191,22 @@ export function PaymentUploadDialog({
       return;
     }
 
+    // Validate crypto amount if provided
+    let validatedCryptoAmount: number | null = null;
+    if (cryptoAmount.trim()) {
+      const validation = validateOptionalNumber(cryptoAmount, {
+        fieldName: "Crypto amount",
+        min: VALIDATION_LIMITS.CRYPTO_AMOUNT.MIN,
+        max: VALIDATION_LIMITS.CRYPTO_AMOUNT.MAX,
+      });
+      
+      if (!validation.isValid) {
+        toast.error(validation.error || "Invalid crypto amount");
+        return;
+      }
+      validatedCryptoAmount = validation.value;
+    }
+
     setSubmitting(true);
 
     // Upload proof image if provided
@@ -201,7 +218,7 @@ export function PaymentUploadDialog({
     const { error } = await supabase.from("payments").insert({
       user_id: user.id,
       bundle_id: selectedBundle,
-      crypto_amount: cryptoAmount ? parseFloat(cryptoAmount) : null,
+      crypto_amount: validatedCryptoAmount,
       crypto_currency: selectedWalletData?.currency || null,
       txid: txid || null,
       proof_url: proofUrl,
