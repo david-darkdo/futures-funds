@@ -425,6 +425,7 @@ export type Database = {
         | "active"
         | "paused"
         | "completed"
+        | "merged"
       transaction_type: "deposit" | "growth" | "drawdown" | "withdrawal"
     }
     CompositeTypes: {
@@ -560,6 +561,7 @@ export const Constants = {
         "active",
         "paused",
         "completed",
+        "merged",
       ],
       transaction_type: ["deposit", "growth", "drawdown", "withdrawal"],
     },

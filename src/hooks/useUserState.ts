@@ -8,13 +8,15 @@ interface UserStateData {
   state: UserDashboardState;
   hasPendingPayment: boolean;
   hasActiveInvestment: boolean;
+  pendingPaymentsCount: number;
+  activeInvestmentsCount: number;
   loading: boolean;
 }
 
 export function useUserState(): UserStateData {
   const { user } = useAuth();
-  const [hasPendingPayment, setHasPendingPayment] = useState(false);
-  const [hasActiveInvestment, setHasActiveInvestment] = useState(false);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const [activeInvestmentsCount, setActiveInvestmentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,24 +28,22 @@ export function useUserState(): UserStateData {
     const fetchState = async () => {
       setLoading(true);
 
-      // Check for active investment in user_investments table
-      const { data: activeInvestments } = await supabase
+      // Check for active investments in user_investments table
+      const { data: activeInvestments, count: activeCount } = await supabase
         .from("user_investments")
-        .select("id")
+        .select("id", { count: "exact" })
         .eq("user_id", user.id)
-        .eq("state", "active")
-        .limit(1);
+        .eq("state", "active");
 
       // Check for pending payments (not yet approved)
-      const { data: pendingPayments } = await supabase
+      const { data: pendingPayments, count: pendingCount } = await supabase
         .from("payments")
-        .select("id")
+        .select("id", { count: "exact" })
         .eq("user_id", user.id)
-        .eq("status", "pending")
-        .limit(1);
+        .eq("status", "pending");
 
-      setHasActiveInvestment((activeInvestments?.length ?? 0) > 0);
-      setHasPendingPayment((pendingPayments?.length ?? 0) > 0);
+      setActiveInvestmentsCount(activeCount ?? activeInvestments?.length ?? 0);
+      setPendingPaymentsCount(pendingCount ?? pendingPayments?.length ?? 0);
       setLoading(false);
     };
 
@@ -79,9 +79,16 @@ export function useUserState(): UserStateData {
     };
   }, [user]);
 
+  const hasPendingPayment = pendingPaymentsCount > 0;
+  const hasActiveInvestment = activeInvestmentsCount > 0;
+
+  // Updated routing logic:
+  // - If user has ANY active investment → show portfolio (even if they also have pending)
+  // - If user has ONLY pending payments (no active) → show pending
+  // - Otherwise → show start
   const state = useMemo((): UserDashboardState => {
     if (loading) return "loading";
-    if (hasActiveInvestment) return "portfolio";
+    if (hasActiveInvestment) return "portfolio"; // Portfolio takes priority
     if (hasPendingPayment) return "pending";
     return "start";
   }, [loading, hasActiveInvestment, hasPendingPayment]);
@@ -90,6 +97,8 @@ export function useUserState(): UserStateData {
     state,
     hasPendingPayment,
     hasActiveInvestment,
+    pendingPaymentsCount,
+    activeInvestmentsCount,
     loading
   };
 }
