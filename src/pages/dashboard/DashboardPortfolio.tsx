@@ -1,19 +1,29 @@
 import { useState, useMemo } from "react";
-import { Plus, ArrowDownToLine } from "lucide-react";
+import { Plus, ArrowDownToLine, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUserInvestment, generateChartDataFromLogs } from "@/hooks/useUserInvestment";
+import { useMultiInvestment, generateChartDataFromMultiLogs } from "@/hooks/useMultiInvestment";
 import { useTransactions, generateChartFromTransactions, calculatePortfolioMetrics } from "@/hooks/useTransactions";
 import { CapitalOverview } from "@/components/dashboard/CapitalOverview";
 import { CircularGrowthIndicator } from "@/components/dashboard/CircularGrowthIndicator";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { ProfitTicker } from "@/components/dashboard/ProfitTicker";
 import { MessagingPanel } from "@/components/dashboard/MessagingPanel";
+import { PendingInvestmentsCard } from "@/components/dashboard/PendingInvestmentsCard";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardPortfolio() {
-  const { investment, growthLogs, loading } = useUserInvestment();
+  const { 
+    activeInvestments, 
+    pendingPayments, 
+    portfolio, 
+    growthLogs, 
+    loading,
+    hasActiveInvestment,
+    hasPendingPayment
+  } = useMultiInvestment();
   const { transactions, loading: transactionsLoading } = useTransactions();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
@@ -23,13 +33,17 @@ export default function DashboardPortfolio() {
     if (transactions.length > 0) {
       return generateChartFromTransactions(transactions);
     }
-    if (!investment) return [];
-    return generateChartDataFromLogs(
-      investment.initial_amount,
-      investment.created_at,
+    if (activeInvestments.length === 0) return [];
+    // Use the oldest active investment's start date
+    const oldestInvestment = activeInvestments.reduce((oldest, inv) => 
+      new Date(inv.created_at) < new Date(oldest.created_at) ? inv : oldest
+    );
+    return generateChartDataFromMultiLogs(
+      portfolio.totalInitialAmount,
+      oldestInvestment.created_at,
       growthLogs
     );
-  }, [transactions, investment, growthLogs]);
+  }, [transactions, activeInvestments, portfolio.totalInitialAmount, growthLogs]);
 
   // Calculate portfolio metrics from transactions
   const metrics = useMemo(() => calculatePortfolioMetrics(transactions), [transactions]);
@@ -51,7 +65,7 @@ export default function DashboardPortfolio() {
 
   // Generate timeline events from growth logs
   const timelineEvents = useMemo(() => {
-    if (!investment) return [];
+    if (activeInvestments.length === 0) return [];
     
     const events: Array<{
       id: string;
@@ -62,14 +76,16 @@ export default function DashboardPortfolio() {
       amount?: number;
     }> = [];
 
-    // Add initial investment event
-    events.push({
-      id: "initial",
-      type: "payment",
-      title: "Investment Started",
-      description: `Initial investment of $${investment.initial_amount.toLocaleString()}`,
-      date: investment.created_at,
-      amount: investment.initial_amount,
+    // Add initial investment events for each active investment
+    activeInvestments.forEach((inv) => {
+      events.push({
+        id: `initial-${inv.id}`,
+        type: "payment",
+        title: inv.bundle?.name ? `${inv.bundle.name} Activated` : "Investment Started",
+        description: `Investment of $${inv.initial_amount.toLocaleString()}`,
+        date: inv.created_at,
+        amount: inv.initial_amount,
+      });
     });
 
     // Add growth log events
@@ -84,8 +100,9 @@ export default function DashboardPortfolio() {
       });
     });
 
-    return events.reverse(); // Most recent first
-  }, [investment, growthLogs]);
+    // Sort by date descending (most recent first)
+    return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [activeInvestments, growthLogs]);
 
   if (loading) {
     return (
@@ -111,7 +128,7 @@ export default function DashboardPortfolio() {
     );
   }
 
-  if (!investment) {
+  if (!hasActiveInvestment) {
     return (
       <div className="flex-1 p-4 lg:p-8">
         <div className="text-center py-12">
@@ -131,6 +148,11 @@ export default function DashboardPortfolio() {
       </div>
     );
   }
+
+  // Build display name for bundles
+  const bundleDisplayName = portfolio.activeInvestmentsCount > 1
+    ? `${portfolio.primaryBundleName} +${portfolio.activeInvestmentsCount - 1} more`
+    : portfolio.primaryBundleName;
 
   return (
     <div className="flex-1 p-4 lg:p-8 space-y-6">
@@ -156,13 +178,29 @@ export default function DashboardPortfolio() {
         </Button>
       </div>
 
-      {/* Capital Overview - Full Width */}
-      <CapitalOverview
-        initialAmount={investment.initial_amount}
-        currentValue={investment.current_value}
-        status={investment.state === "active" ? "active" : investment.state === "paused" ? "paused" : "pending"}
-        bundleName={investment.bundle?.name}
-      />
+      {/* Capital Overview - Full Width with multi-investment info */}
+      <div className="relative">
+        <CapitalOverview
+          initialAmount={portfolio.totalInitialAmount}
+          currentValue={portfolio.totalCurrentValue}
+          status="active"
+          bundleName={bundleDisplayName}
+        />
+        {portfolio.activeInvestmentsCount > 1 && (
+          <Badge 
+            variant="outline" 
+            className="absolute top-4 right-4 border-gold/30 text-gold gap-1"
+          >
+            <Layers className="w-3 h-3" />
+            {portfolio.activeInvestmentsCount} Active Bundles
+          </Badge>
+        )}
+      </div>
+
+      {/* Pending Investments Notice - Show if user has pending payments while active */}
+      {hasPendingPayment && (
+        <PendingInvestmentsCard pendingPayments={pendingPayments} />
+      )}
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -208,15 +246,15 @@ export default function DashboardPortfolio() {
           {/* Circular Growth Indicator */}
           <div className="p-6 rounded-xl bg-card border border-border flex items-center justify-center">
             <CircularGrowthIndicator
-              percentage={investment.growth_percentage}
+              percentage={portfolio.totalGrowthPercentage}
               label="Total Growth"
             />
           </div>
 
           {/* Profit Ticker */}
           <ProfitTicker
-            currentValue={investment.current_value}
-            initialAmount={investment.initial_amount}
+            currentValue={portfolio.totalCurrentValue}
+            initialAmount={portfolio.totalInitialAmount}
             dailyChange={dailyChange}
           />
 
@@ -234,7 +272,7 @@ export default function DashboardPortfolio() {
       <WithdrawalRequestDialog
         open={withdrawalDialogOpen}
         onOpenChange={setWithdrawalDialogOpen}
-        availableBalance={investment.current_value}
+        availableBalance={portfolio.totalCurrentValue}
       />
     </div>
   );
