@@ -7,7 +7,7 @@ export interface UserInvestment {
   user_id: string;
   bundle_id: string;
   payment_id: string | null;
-  state: "no_investment" | "pending_payment" | "active" | "paused" | "completed";
+  state: "no_investment" | "pending_payment" | "active" | "paused" | "completed" | "merged";
   initial_amount: number;
   current_value: number;
   growth_percentage: number;

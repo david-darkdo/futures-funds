@@ -358,7 +358,7 @@ export function InvestmentsTable({
               </div>
               {selectedInvestment.admin_note && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Admin Note</p>
+                  <p className="text-sm text-muted-foreground">Management Note</p>
                   <p className="text-sm">{selectedInvestment.admin_note}</p>
                 </div>
               )}
@@ -438,7 +438,7 @@ export function InvestmentsTable({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="note">Admin Note (optional)</Label>
+                <Label htmlFor="note">Management Note (optional)</Label>
                 <Textarea
                   id="note"
                   placeholder="Add a note..."
@@ -494,7 +494,7 @@ export function InvestmentsTable({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="stateNote">Admin Note (optional)</Label>
+                <Label htmlFor="stateNote">Management Note (optional)</Label>
                 <Textarea
                   id="stateNote"
                   placeholder="Add a note about this state change..."

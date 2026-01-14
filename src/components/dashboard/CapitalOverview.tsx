@@ -34,7 +34,7 @@ export function CapitalOverview({
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gold/10 text-gold border border-gold/20">
             <span className="w-1.5 h-1.5 rounded-full bg-gold" />
-            Pending
+            Under Management Review
           </span>
         );
       case "paused":

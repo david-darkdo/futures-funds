@@ -271,7 +271,7 @@ export function WithdrawalsTable({ withdrawals, onApprove, onReject, showAll = f
               )}
               {selectedWithdrawal.admin_note && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Admin Note</p>
+                  <p className="text-sm text-muted-foreground">Management Note</p>
                   <p className="text-sm">{selectedWithdrawal.admin_note}</p>
                 </div>
               )}

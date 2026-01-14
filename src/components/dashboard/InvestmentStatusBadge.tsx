@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, PauseCircle, XCircle } from "lucide-react";
 
-type InvestmentState = "no_investment" | "pending_payment" | "active" | "paused" | "completed";
+type InvestmentState = "no_investment" | "pending_payment" | "active" | "paused" | "completed" | "merged";
 
 interface InvestmentStatusBadgeProps {
   status: InvestmentState;
@@ -32,10 +32,17 @@ export function InvestmentStatusBadge({ status, size = "md" }: InvestmentStatusB
         };
       case "pending_payment":
         return {
-          label: "Pending Review",
+          label: "Under Management Review",
           icon: Clock,
           classes: "bg-gold/10 text-gold border-gold/20",
           dotClass: "bg-gold",
+        };
+      case "merged":
+        return {
+          label: "Merged",
+          icon: CheckCircle,
+          classes: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+          dotClass: "bg-purple-500",
         };
       case "paused":
         return {

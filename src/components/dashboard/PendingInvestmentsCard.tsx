@@ -37,7 +37,7 @@ export function PendingInvestmentsCard({ pendingPayments }: PendingInvestmentsCa
           <Clock className="w-5 h-5 text-amber-500" />
           Pending Investments
           <Badge variant="outline" className="ml-auto border-amber-500/30 text-amber-500">
-            Under Review
+            Under Management Review
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -65,7 +65,7 @@ export function PendingInvestmentsCard({ pendingPayments }: PendingInvestmentsCa
               </div>
               <div className="text-right">
                 <p className="font-semibold">${payment.bundle?.price_usd?.toLocaleString() || "—"}</p>
-                <p className="text-xs text-amber-500">Pending</p>
+                <p className="text-xs text-amber-500">Under Management Review</p>
               </div>
             </div>
           ))}

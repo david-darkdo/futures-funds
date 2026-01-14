@@ -75,7 +75,7 @@ export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdraw
                 <span className="text-xl font-display font-bold text-foreground block">
                   Future<span className="text-gold">Funds</span>
                 </span>
-                <span className="text-xs text-muted-foreground">Admin Panel</span>
+                <span className="text-xs text-muted-foreground">Management Panel</span>
               </div>
             </Link>
             <button onClick={onClose} className="lg:hidden p-1 text-muted-foreground hover:text-foreground">
