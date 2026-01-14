@@ -52,7 +52,7 @@ export default function AdminWallets() {
               </button>
               
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium">
-                <span>Admin</span>
+                <span>Management</span>
               </div>
             </div>
           </div>

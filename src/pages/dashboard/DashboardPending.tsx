@@ -153,7 +153,7 @@ export default function DashboardPending() {
             <Clock className="w-8 h-8 text-gold" />
           </div>
           <h1 className="text-3xl lg:text-4xl font-bold mb-4">
-            {hasExistingPortfolio ? "New Investment Under Review" : "CEO Review Pending"}
+            {hasExistingPortfolio ? "New Investment Under Review" : "Under Management Review"}
           </h1>
           <p className="text-muted-foreground text-lg">
             {hasExistingPortfolio 

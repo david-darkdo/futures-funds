@@ -68,7 +68,7 @@ interface UserInvestment {
   user_id: string;
   bundle_id: string;
   payment_id: string | null;
-  state: "no_investment" | "pending_payment" | "active" | "paused" | "completed";
+  state: "no_investment" | "pending_payment" | "active" | "paused" | "completed" | "merged";
   initial_amount: number;
   current_value: number;
   growth_percentage: number;
@@ -341,7 +341,7 @@ export function useAdminData() {
       .from("payments")
       .update({
         status: "rejected",
-        admin_note: note || "Payment rejected by admin",
+        admin_note: note || "Payment rejected by management",
         updated_at: new Date().toISOString(),
       })
       .eq("id", paymentId);
@@ -417,7 +417,7 @@ export function useAdminData() {
       .from("withdrawals")
       .update({
         status: "rejected",
-        admin_note: note || "Withdrawal rejected by admin",
+        admin_note: note || "Withdrawal rejected by management",
         admin_id: user?.id,
         updated_at: new Date().toISOString(),
       })

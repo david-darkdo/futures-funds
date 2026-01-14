@@ -270,7 +270,7 @@ export function PaymentsTable({ payments, onApprove, onReject, showAll = false }
               )}
               {selectedPayment.admin_note && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Admin Note</p>
+                  <p className="text-sm text-muted-foreground">Management Note</p>
                   <p className="text-sm">{selectedPayment.admin_note}</p>
                 </div>
               )}

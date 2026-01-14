@@ -40,11 +40,11 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
 
   return (
     <>
-      {/* Admin mode indicator */}
+      {/* Management mode indicator */}
       {role === "admin" && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-gold/20 border border-gold/40 text-gold px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
           <Shield className="w-4 h-4" />
-          ADMIN MODE ACTIVE
+          MANAGEMENT MODE
         </div>
       )}
       {children}
