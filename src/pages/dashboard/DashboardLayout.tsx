@@ -9,6 +9,7 @@ import { useDashboardData, calculateGrowth } from "@/hooks/useDashboardData";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
+import { WhatsAppSupport } from "@/components/dashboard/WhatsAppSupport";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -152,6 +153,8 @@ export default function DashboardLayout() {
         onOpenChange={setWithdrawalDialogOpen}
         availableBalance={growthData.currentValue}
       />
+
+      <WhatsAppSupport />
     </div>
   );
 }
