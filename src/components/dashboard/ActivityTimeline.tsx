@@ -39,13 +39,12 @@ export function generateTimelineEvents(
     created_at: string | null;
     bundle?: { name: string; price_usd: number };
   }>,
-  growthPercent: number
+  _growthPercent: number
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
 
   payments.forEach(payment => {
     if (payment.bundle && payment.created_at) {
-      // Bundle purchased
       events.push({
         id: `${payment.id}-purchase`,
         type: "bundle_purchased",
@@ -54,7 +53,6 @@ export function generateTimelineEvents(
         date: payment.created_at
       });
 
-      // Payment submitted
       events.push({
         id: `${payment.id}-submitted`,
         type: "payment_submitted",
@@ -63,7 +61,6 @@ export function generateTimelineEvents(
         date: payment.created_at
       });
 
-      // Payment approved/pending
       if (payment.status === "approved") {
         events.push({
           id: `${payment.id}-approved`,
@@ -84,22 +81,8 @@ export function generateTimelineEvents(
     }
   });
 
-  // Add growth milestones
-  const milestones = [5, 10, 25, 50, 100];
-  milestones.forEach(milestone => {
-    if (growthPercent >= milestone) {
-      events.push({
-        id: `milestone-${milestone}`,
-        type: "growth_milestone",
-        title: `+${milestone}% Growth Achieved`,
-        description: `Your portfolio has grown ${milestone}% since initial investment`,
-        date: new Date().toISOString(),
-        milestone
-      });
-    }
-  });
+  // Growth milestones removed — will be shown in notification bell instead
 
-  // Sort by date descending
   return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
