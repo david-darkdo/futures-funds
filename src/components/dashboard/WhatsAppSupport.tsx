@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-const WHATSAPP_LINK = "https://wa.me/qr/6FQ7QETQTMCBF1";
+const WHATSAPP_NUMBER = "18644345083";
+const DEFAULT_MESSAGE = "Hello Future Funds Support, I need assistance with my account.";
 
 export function WhatsAppSupport() {
   const [open, setOpen] = useState(false);
@@ -64,14 +65,14 @@ export function WhatsAppSupport() {
   };
 
   const handleSend = () => {
-    if (!message.trim()) return;
     const userName = profile?.full_name || "N/A";
     const userEmail = profile?.email || user?.email || "N/A";
     const userId = user?.id || "N/A";
+    const userMessage = message.trim() || DEFAULT_MESSAGE;
 
-    const fullMessage = `User: ${userName}\nEmail: ${userEmail}\nID: ${userId}\n\nMessage: ${message.trim()}`;
+    const fullMessage = `User: ${userName}\nEmail: ${userEmail}\nID: ${userId}\n\nMessage: ${userMessage}`;
     const encoded = encodeURIComponent(fullMessage);
-    window.open(`${WHATSAPP_LINK}?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
     setMessage("");
     setOpen(false);
   };
@@ -92,7 +93,10 @@ export function WhatsAppSupport() {
         <div className="flex items-center justify-between px-4 py-3 rounded-t-2xl" style={{ backgroundColor: "#25D366" }}>
           <div className="flex items-center gap-2">
             <WhatsAppIcon className="w-5 h-5 text-white" />
-            <span className="font-semibold text-white text-sm">Support Zone</span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-white text-sm leading-tight">Future Funds Support</span>
+              <span className="text-white/80 text-[11px] leading-tight">Chat with us on WhatsApp</span>
+            </div>
           </div>
           <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -101,13 +105,10 @@ export function WhatsAppSupport() {
 
         {/* Body */}
         <div className="p-4 space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Type your message below. You'll be redirected to WhatsApp to continue the conversation.
-          </p>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="How can we help you?"
+            placeholder="Type your message..."
             className="min-h-[80px] resize-none text-sm"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -118,13 +119,15 @@ export function WhatsAppSupport() {
           />
           <Button
             onClick={handleSend}
-            disabled={!message.trim()}
             className="w-full text-white font-medium rounded-xl"
             style={{ backgroundColor: "#25D366" }}
           >
-            <Send className="w-4 h-4 mr-2" />
+            <WhatsAppIcon className="w-4 h-4 mr-2" />
             Send via WhatsApp
           </Button>
+          <p className="text-[11px] text-muted-foreground text-center">
+            You will be redirected to WhatsApp to continue the conversation.
+          </p>
         </div>
       </div>
 
