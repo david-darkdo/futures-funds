@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const WHATSAPP_NUMBER = "18644345083";
+const CONNECTED_FLAG = "ff_whatsapp_connected";
 const DEFAULT_MESSAGE = "Hello Future Funds Support, I need assistance with my account.";
 
 export function WhatsAppSupport() {
@@ -65,12 +66,22 @@ export function WhatsAppSupport() {
   };
 
   const handleSend = () => {
-    const userName = profile?.full_name || "N/A";
     const userEmail = profile?.email || user?.email || "N/A";
-    const userId = user?.id || "N/A";
     const userMessage = message.trim() || DEFAULT_MESSAGE;
+    const isFirstMessage = !localStorage.getItem(CONNECTED_FLAG);
 
-    const fullMessage = `User: ${userName}\nEmail: ${userEmail}\nID: ${userId}\n\nMessage: ${userMessage}`;
+    let fullMessage: string;
+
+    if (isFirstMessage) {
+      // First message: include email
+      fullMessage = `Email: ${userEmail}\nMessage: ${userMessage}`;
+      // Set flag after first message
+      localStorage.setItem(CONNECTED_FLAG, "true");
+    } else {
+      // Subsequent messages: only the message
+      fullMessage = userMessage;
+    }
+
     const encoded = encodeURIComponent(fullMessage);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
     setMessage("");
