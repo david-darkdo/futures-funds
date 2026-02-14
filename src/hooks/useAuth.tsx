@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem("ff_whatsapp_connected");
     setUser(null);
     setSession(null);
     setRole(null);
