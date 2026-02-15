@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-const WHATSAPP_NUMBER = "18644345083";
+const WHATSAPP_NUMBER = "16232122337";
 const CONNECTED_FLAG = "ff_whatsapp_connected";
 const DEFAULT_MESSAGE = "Hello Future Funds Support, I need assistance with my account.";
 
