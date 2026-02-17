@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { TrendingUp, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +32,18 @@ export default function Login() {
           : error.message,
         variant: "destructive",
       });
+    } else {
+      // Send login alert (fire and forget)
+      try {
+        supabase.functions.invoke("login-alert", {
+          body: {
+            device: navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser",
+            ip: "Detected by server",
+          },
+        });
+      } catch (e) {
+        console.error("Login alert failed:", e);
+      }
     }
   };
 
