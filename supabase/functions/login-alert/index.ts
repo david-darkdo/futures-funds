@@ -1,0 +1,116 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "No auth" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get user from token
+    const token = authHeader.replace("Bearer ", "");
+    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!);
+    const { data: { user }, error: userError } = await anonClient.auth.getUser(token);
+
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { device, ip } = await req.json();
+
+    // Get profile with last_login_at
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email, last_login_at")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) {
+      return new Response(JSON.stringify({ error: "Profile not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const now = new Date();
+    let shouldSendAlert = false;
+
+    if (profile.last_login_at) {
+      const lastLogin = new Date(profile.last_login_at);
+      const diffMs = now.getTime() - lastLogin.getTime();
+      const diffMinutes = diffMs / (1000 * 60);
+      shouldSendAlert = diffMinutes > 60;
+    }
+    // First login ever - no alert needed, just update timestamp
+
+    // Update last_login_at
+    await supabase
+      .from("profiles")
+      .update({ last_login_at: now.toISOString() })
+      .eq("id", user.id);
+
+    if (shouldSendAlert && profile.email) {
+      // Call send-email function
+      const emailPayload = {
+        type: "login_alert",
+        to: profile.email,
+        fullName: profile.full_name || "Investor",
+        userId: user.id,
+        loginTime: now.toLocaleString("en-US", {
+          timeZone: "UTC",
+          dateStyle: "full",
+          timeStyle: "long",
+        }),
+        device: device || "Unknown Device",
+        ip: ip || "Unknown",
+      };
+
+      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_PUBLISHABLE_KEY")}`,
+        },
+        body: JSON.stringify(emailPayload),
+      });
+
+      const emailResult = await emailRes.text();
+      console.log("Login alert email result:", emailResult);
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        alertSent: shouldSendAlert,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Login alert error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

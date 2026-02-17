@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TrendingUp, Eye, EyeOff, ArrowRight, Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,6 +64,23 @@ export default function Signup() {
         title: "Account created!",
         description: "You have been signed in to your new account.",
       });
+
+      // Send welcome email (fire and forget)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          supabase.functions.invoke("send-email", {
+            body: {
+              type: "signup",
+              to: formData.email,
+              fullName: formData.name,
+              userId: user.id,
+            },
+          });
+        }
+      } catch (e) {
+        console.error("Welcome email failed:", e);
+      }
     }
   };
 
