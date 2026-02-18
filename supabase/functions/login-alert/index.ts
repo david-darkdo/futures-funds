@@ -23,19 +23,24 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Get user from token
+    // Validate JWT using getClaims
     const token = authHeader.replace("Bearer ", "");
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!);
-    const { data: { user }, error: userError } = await anonClient.auth.getUser(token);
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
 
-    if (userError || !user) {
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userId = claimsData.claims.sub;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { device, ip } = await req.json();
 
@@ -43,7 +48,7 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("full_name, email, last_login_at")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     if (!profile) {
@@ -68,15 +73,14 @@ serve(async (req) => {
     await supabase
       .from("profiles")
       .update({ last_login_at: now.toISOString() })
-      .eq("id", user.id);
+      .eq("id", userId);
 
     if (shouldSendAlert && profile.email) {
-      // Call send-email function
       const emailPayload = {
         type: "login_alert",
         to: profile.email,
         fullName: profile.full_name || "Investor",
-        userId: user.id,
+        userId: userId,
         loginTime: now.toLocaleString("en-US", {
           timeZone: "UTC",
           dateStyle: "full",
@@ -90,7 +94,7 @@ serve(async (req) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_PUBLISHABLE_KEY")}`,
+          Authorization: `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify(emailPayload),
       });
