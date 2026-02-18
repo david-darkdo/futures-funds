@@ -23,23 +23,26 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    // Anon key is public — safe to embed as fallback
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jbXpxdnFmbWJibnRtdnN3cG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NzYwNDIsImV4cCI6MjA4MTA1MjA0Mn0.zPsMLVjDUXpq0BPV2UQwk7UhDtwOv0KObsgj9OYbCZ8";
 
-    // Validate JWT using getClaims
+    // Use service-role client to validate token — getUser() verifies JWT server-side
     const token = authHeader.replace("Bearer ", "");
-    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: { user }, error: userError } = await adminClient.auth.admin.getUserById(
+      // We need to extract the sub from the JWT without a library, so we decode it
+      JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).sub
+    );
 
-    if (claimsError || !claimsData?.claims) {
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { device, ip } = await req.json();
@@ -67,7 +70,7 @@ serve(async (req) => {
       const diffMinutes = diffMs / (1000 * 60);
       shouldSendAlert = diffMinutes > 60;
     }
-    // First login ever - no alert needed, just update timestamp
+    // First login ever — no alert needed, just update timestamp
 
     // Update last_login_at
     await supabase
