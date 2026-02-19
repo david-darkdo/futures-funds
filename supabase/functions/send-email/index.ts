@@ -209,12 +209,16 @@ We continue to apply structured investment strategies to optimize performance. V
 }
 
 async function sendGmail(to: string, subject: string, html: string) {
-  // Use Gmail SMTP via fetch to smtp relay service
-  // Since Deno doesn't have native SMTP, we'll use the Resend-compatible approach
-  // Actually, let's use raw SMTP via Deno's built-in TLS
-  
   const smtpHost = "smtp.gmail.com";
   const smtpPort = 465;
+
+  console.log("[send-email] Connecting to SMTP:", smtpHost, smtpPort);
+  console.log("[send-email] FROM:", GMAIL_USER, "| TO:", to);
+  console.log("[send-email] Subject:", subject);
+
+  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+    throw new Error("GMAIL_USER or GMAIL_APP_PASSWORD secret is not configured");
+  }
 
   const conn = await Deno.connectTls({ hostname: smtpHost, port: smtpPort });
   const encoder = new TextEncoder();
@@ -223,29 +227,37 @@ async function sendGmail(to: string, subject: string, html: string) {
   async function readResponse(): Promise<string> {
     const buf = new Uint8Array(4096);
     const n = await conn.read(buf);
-    return decoder.decode(buf.subarray(0, n || 0));
+    const response = decoder.decode(buf.subarray(0, n || 0));
+    console.log("[send-email] SMTP <--", response.trim());
+    return response;
   }
 
   async function sendCommand(cmd: string): Promise<string> {
+    const logCmd = cmd.startsWith("AUTH") || cmd === btoa(GMAIL_USER) || cmd === btoa(GMAIL_APP_PASSWORD)
+      ? "[REDACTED]"
+      : cmd;
+    console.log("[send-email] SMTP -->", logCmd);
     await conn.write(encoder.encode(cmd + "\r\n"));
     return await readResponse();
   }
 
   // Read greeting
   await readResponse();
-
   await sendCommand(`EHLO localhost`);
-  
+
   // AUTH LOGIN
   await sendCommand("AUTH LOGIN");
   await sendCommand(btoa(GMAIL_USER));
-  await sendCommand(btoa(GMAIL_APP_PASSWORD));
+  const authResult = await sendCommand(btoa(GMAIL_APP_PASSWORD));
+  if (!authResult.startsWith("235")) {
+    throw new Error(`SMTP AUTH failed: ${authResult.trim()}`);
+  }
+  console.log("[send-email] SMTP AUTH successful");
 
   await sendCommand(`MAIL FROM:<${GMAIL_USER}>`);
   await sendCommand(`RCPT TO:<${to}>`);
   await sendCommand("DATA");
 
-  const boundary = `boundary_${Date.now()}`;
   const emailContent = [
     `From: "Future Funds" <${GMAIL_USER}>`,
     `To: ${to}`,
@@ -259,11 +271,17 @@ async function sendGmail(to: string, subject: string, html: string) {
   ].join("\r\n");
 
   await conn.write(encoder.encode(emailContent + "\r\n"));
-  await readResponse();
-  
+  const dataResult = await readResponse();
+  if (!dataResult.startsWith("250")) {
+    throw new Error(`SMTP DATA send failed: ${dataResult.trim()}`);
+  }
+  console.log("[send-email] Email body accepted by SMTP server");
+
   await sendCommand("QUIT");
   conn.close();
+  console.log("[send-email] SMTP connection closed — email sent successfully to:", to);
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -271,7 +289,18 @@ serve(async (req) => {
   }
 
   try {
-    const { type, to, fullName, userId, ...extra } = await req.json();
+    const body = await req.json();
+    const { type, to, fullName, userId, ...extra } = body;
+
+    console.log("[send-email] Request received — type:", type, "| to:", to, "| fullName:", fullName);
+
+    if (!to) {
+      console.error("[send-email] Missing 'to' email address");
+      return new Response(
+        JSON.stringify({ error: "Missing recipient email address" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     let subject: string;
     let html: string;
@@ -309,20 +338,23 @@ serve(async (req) => {
         break;
       }
       default:
+        console.error("[send-email] Invalid email type:", type);
         return new Response(
           JSON.stringify({ error: "Invalid email type" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
 
+    console.log("[send-email] Attempting SMTP send — GMAIL_USER configured:", !!GMAIL_USER);
     await sendGmail(to, subject, html);
+    console.log("[send-email] ✅ Email sent successfully to:", to);
 
     return new Response(
       JSON.stringify({ success: true, message: `Email sent to ${to}` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("[send-email] ❌ Email send FAILED:", error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

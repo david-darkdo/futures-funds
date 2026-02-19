@@ -20,11 +20,13 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log("[Login] Attempting sign in for:", email);
     const { error } = await signIn(email, password);
 
     setIsLoading(false);
 
     if (error) {
+      console.error("[Login] Sign in failed:", error.message);
       toast({
         title: "Sign in failed",
         description: error.message === "Invalid login credentials" 
@@ -33,19 +35,33 @@ export default function Login() {
         variant: "destructive",
       });
     } else {
-      // Send login alert (fire and forget)
+      console.log("[Login] Login successful — triggering login-alert function");
+
+      // Fire login alert (fire and forget, but log result)
       try {
+        const device = navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser";
+        console.log("[Login] Calling login-alert with device:", device);
+
         supabase.functions.invoke("login-alert", {
           body: {
-            device: navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop Browser",
+            device,
             ip: "Detected by server",
           },
+        }).then(({ data, error: fnError }) => {
+          if (fnError) {
+            console.error("[Login] login-alert function error:", fnError.message);
+          } else {
+            console.log("[Login] login-alert response:", JSON.stringify(data));
+          }
+        }).catch((e) => {
+          console.error("[Login] login-alert invocation exception:", e);
         });
       } catch (e) {
-        console.error("Login alert failed:", e);
+        console.error("[Login] Failed to invoke login-alert:", e);
       }
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background flex">
