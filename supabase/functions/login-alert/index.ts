@@ -62,15 +62,9 @@ serve(async (req) => {
     }
 
     const now = new Date();
-    let shouldSendAlert = false;
 
-    if (profile.last_login_at) {
-      const lastLogin = new Date(profile.last_login_at);
-      const diffMs = now.getTime() - lastLogin.getTime();
-      const diffMinutes = diffMs / (1000 * 60);
-      shouldSendAlert = diffMinutes > 60;
-    }
-    // First login ever — no alert needed, just update timestamp
+    // Always send a login alert email on every sign-in
+    const shouldSendAlert = true;
 
     // Update last_login_at
     await supabase
