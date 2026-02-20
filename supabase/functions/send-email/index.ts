@@ -228,7 +228,11 @@ async function sendGmail(to: string, subject: string, html: string) {
   async function readResponse(): Promise<string> {
     const buf = new Uint8Array(4096);
     const n = await conn.read(buf);
-    const response = decoder.decode(buf.subarray(0, n || 0));
+    if (n === null || n === 0) {
+      console.error("[send-email] SMTP connection closed unexpectedly (read returned null)");
+      throw new Error("SMTP connection closed unexpectedly");
+    }
+    const response = decoder.decode(buf.subarray(0, n));
     console.log("[send-email] SMTP <--", response.trim());
     return response;
   }
@@ -259,6 +263,10 @@ async function sendGmail(to: string, subject: string, html: string) {
   await sendCommand(`RCPT TO:<${to}>`);
   await sendCommand("DATA");
 
+  // SMTP dot-stuffing: any line starting with "." must be escaped to ".."
+  // to prevent premature end-of-message
+  const dotStuffedHtml = html.replace(/\r?\n\./g, "\r\n..");
+
   const emailContent = [
     `From: "Future Funds" <${GMAIL_USER}>`,
     `To: ${to}`,
@@ -267,7 +275,7 @@ async function sendGmail(to: string, subject: string, html: string) {
     `Content-Type: text/html; charset=UTF-8`,
     `Content-Transfer-Encoding: 7bit`,
     ``,
-    html,
+    dotStuffedHtml,
     `.`,
   ].join("\r\n");
 

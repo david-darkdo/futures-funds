@@ -65,10 +65,11 @@ export default function Signup() {
         description: "You have been signed in to your new account.",
       });
 
-      // Send welcome email (fire and forget)
+      // Send welcome email (fire and forget, but log result)
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          console.log("[Signup] Sending welcome email to:", formData.email);
           supabase.functions.invoke("send-email", {
             body: {
               type: "signup",
@@ -76,10 +77,20 @@ export default function Signup() {
               fullName: formData.name,
               userId: user.id,
             },
+          }).then(({ data, error: fnError }) => {
+            if (fnError) {
+              console.error("[Signup] Welcome email function error:", fnError.message);
+            } else {
+              console.log("[Signup] Welcome email response:", JSON.stringify(data));
+            }
+          }).catch((e) => {
+            console.error("[Signup] Welcome email invocation exception:", e);
           });
+        } else {
+          console.warn("[Signup] No user found after signup — skipping welcome email");
         }
       } catch (e) {
-        console.error("Welcome email failed:", e);
+        console.error("[Signup] Welcome email failed:", e);
       }
     }
   };
