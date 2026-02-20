@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -289,6 +290,40 @@ serve(async (req) => {
   }
 
   try {
+    // --- Authentication: require valid user JWT or service role key ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[send-email] Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const isServiceCall = token === serviceRoleKey;
+
+    if (!isServiceCall) {
+      // Validate as user JWT
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data, error: claimsError } = await supabase.auth.getUser(token);
+      if (claimsError || !data?.user) {
+        console.error("[send-email] JWT validation failed:", claimsError?.message);
+        return new Response(
+          JSON.stringify({ error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      console.log("[send-email] Authenticated as user:", data.user.id);
+    } else {
+      console.log("[send-email] Authenticated via service role key");
+    }
+
     const body = await req.json();
     const { type, to, fullName, userId, ...extra } = body;
 
