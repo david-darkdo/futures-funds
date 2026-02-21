@@ -19,6 +19,8 @@ interface Bundle {
   daily_growth_rate: number | null;
   slug: string;
   active: boolean | null;
+  min_invest: number | null;
+  max_invest: number | null;
 }
 
 interface Payment {

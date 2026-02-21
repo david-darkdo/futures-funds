@@ -52,6 +52,8 @@ export type Database = {
           description: string | null
           features: Json | null
           id: string
+          max_invest: number | null
+          min_invest: number | null
           name: string
           price_usd: number
           slug: string
@@ -63,6 +65,8 @@ export type Database = {
           description?: string | null
           features?: Json | null
           id?: string
+          max_invest?: number | null
+          min_invest?: number | null
           name: string
           price_usd: number
           slug: string
@@ -74,6 +78,8 @@ export type Database = {
           description?: string | null
           features?: Json | null
           id?: string
+          max_invest?: number | null
+          min_invest?: number | null
           name?: string
           price_usd?: number
           slug?: string
