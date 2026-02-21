@@ -25,6 +25,8 @@ interface Bundle {
   daily_growth_rate: number | null;
   slug: string;
   active: boolean | null;
+  min_invest: number | null;
+  max_invest: number | null;
 }
 
 interface BundlesManagerProps {
@@ -44,6 +46,8 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [priceUsd, setPriceUsd] = useState("");
+  const [minInvest, setMinInvest] = useState("");
+  const [maxInvest, setMaxInvest] = useState("");
   const [description, setDescription] = useState("");
   const [dailyGrowthRate, setDailyGrowthRate] = useState([0.5]);
   const [isActive, setIsActive] = useState(true);
@@ -52,6 +56,8 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
     setName("");
     setSlug("");
     setPriceUsd("");
+    setMinInvest("");
+    setMaxInvest("");
     setDescription("");
     setDailyGrowthRate([0.5]);
     setIsActive(true);
@@ -62,6 +68,8 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
     setName(bundle.name);
     setSlug(bundle.slug);
     setPriceUsd(bundle.price_usd.toString());
+    setMinInvest((bundle.min_invest ?? 0).toString());
+    setMaxInvest((bundle.max_invest ?? 0).toString());
     setDescription(bundle.description || "");
     setDailyGrowthRate([bundle.daily_growth_rate || 0.5]);
     setIsActive(bundle.active ?? true);
@@ -98,6 +106,8 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
       description: description || null,
       daily_growth_rate: dailyGrowthRate[0],
       active: isActive,
+      min_invest: minInvest ? parseFloat(minInvest) : null,
+      max_invest: maxInvest ? parseFloat(maxInvest) : null,
     });
 
     if (success) {
@@ -131,6 +141,8 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
       description: description || null,
       daily_growth_rate: dailyGrowthRate[0],
       active: isActive,
+      min_invest: minInvest ? parseFloat(minInvest) : null,
+      max_invest: maxInvest ? parseFloat(maxInvest) : null,
     });
 
     if (success) {
@@ -179,6 +191,35 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
             placeholder="1000"
             className="pl-10"
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium mb-2 block">Min Invest (USD)</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={minInvest}
+              onChange={(e) => setMinInvest(e.target.value)}
+              placeholder="50"
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-sm font-medium mb-2 block">Max Invest (USD)</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="number"
+              value={maxInvest}
+              onChange={(e) => setMaxInvest(e.target.value)}
+              placeholder="9999"
+              className="pl-10"
+            />
+          </div>
         </div>
       </div>
 
@@ -269,6 +310,16 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
                 </div>
                 <span className="font-semibold text-gold">
                   ${bundle.price_usd.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="text-sm">Min / Max</span>
+                </div>
+                <span className="font-semibold text-foreground text-sm">
+                  ${(bundle.min_invest ?? 0).toLocaleString()} – ${(bundle.max_invest ?? 0).toLocaleString()}
                 </span>
               </div>
 
