@@ -507,6 +507,8 @@ export function useAdminData() {
       description: bundle.description,
       daily_growth_rate: bundle.daily_growth_rate,
       active: bundle.active ?? true,
+      min_invest: bundle.min_invest,
+      max_invest: bundle.max_invest,
     });
 
     if (error) {
