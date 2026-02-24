@@ -49,7 +49,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
   const [minInvest, setMinInvest] = useState("");
   const [maxInvest, setMaxInvest] = useState("");
   const [description, setDescription] = useState("");
-  const [dailyGrowthRate, setDailyGrowthRate] = useState([0.5]);
+  const [dailyGrowthRate, setDailyGrowthRate] = useState([1]);
   const [isActive, setIsActive] = useState(true);
 
   const resetForm = () => {
@@ -59,7 +59,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
     setMinInvest("");
     setMaxInvest("");
     setDescription("");
-    setDailyGrowthRate([0.5]);
+    setDailyGrowthRate([1]);
     setIsActive(true);
   };
 
@@ -71,7 +71,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
     setMinInvest((bundle.min_invest ?? 0).toString());
     setMaxInvest((bundle.max_invest ?? 0).toString());
     setDescription(bundle.description || "");
-    setDailyGrowthRate([bundle.daily_growth_rate || 0.5]);
+    setDailyGrowthRate([bundle.daily_growth_rate || 1]);
     setIsActive(bundle.active ?? true);
     setEditDialogOpen(true);
   };
@@ -241,16 +241,16 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
           <Slider
             value={dailyGrowthRate}
             onValueChange={setDailyGrowthRate}
-            min={0.1}
-            max={3}
-            step={0.1}
+            min={1}
+            max={100}
+            step={0.5}
             className="[&_[role=slider]]:bg-gold"
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>0.1%</span>
-          <span>1.5%</span>
-          <span>3%</span>
+          <span>1%</span>
+          <span>50%</span>
+          <span>100%</span>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
           ⚠️ This controls the simulated growth rate displayed to users. All values are admin-managed.
