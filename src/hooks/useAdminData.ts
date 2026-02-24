@@ -538,11 +538,25 @@ export function useAdminData() {
   };
 
   const deleteBundle = async (bundleId: string) => {
+    // Try hard delete first
     const { error } = await supabase.from("bundles").delete().eq("id", bundleId);
 
     if (error) {
-      toast.error("Failed to delete bundle");
-      return false;
+      // If FK constraint prevents deletion, soft-delete by deactivating
+      console.warn("Hard delete failed, attempting soft delete:", error.message);
+      const { error: softError } = await supabase
+        .from("bundles")
+        .update({ active: false })
+        .eq("id", bundleId);
+
+      if (softError) {
+        toast.error("Failed to delete bundle");
+        return false;
+      }
+
+      toast.success("Bundle deactivated (has linked investments/payments)");
+      fetchData();
+      return true;
     }
 
     toast.success("Bundle deleted successfully");
