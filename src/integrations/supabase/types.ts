@@ -86,6 +86,38 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_investments: {
+        Row: {
+          bundle_id: string
+          created_at: string
+          id: string
+          initial_amount: number
+          user_id: string
+        }
+        Insert: {
+          bundle_id: string
+          created_at?: string
+          id?: string
+          initial_amount?: number
+          user_id: string
+        }
+        Update: {
+          bundle_id?: string
+          created_at?: string
+          id?: string
+          initial_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_investments_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investment_growth_logs: {
         Row: {
           admin_id: string

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { TrendingUp, Shield, Clock, Sparkles } from "lucide-react";
+import { TrendingUp, Shield, Clock, Sparkles, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
+import { CreateDemoDialog } from "@/components/dashboard/CreateDemoDialog";
 
 const features = [
   {
@@ -29,6 +31,7 @@ const features = [
 
 export default function DashboardStart() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [demoDialogOpen, setDemoDialogOpen] = useState(false);
 
   return (
     <div className="flex-1 p-4 lg:p-8">
@@ -62,7 +65,7 @@ export default function DashboardStart() {
           ))}
         </div>
 
-        <div className="text-center">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
             variant="gold"
             size="lg"
@@ -72,15 +75,36 @@ export default function DashboardStart() {
             <Sparkles className="w-5 h-5" />
             Start New Investment
           </Button>
-          <p className="text-sm text-muted-foreground mt-4">
-            Select a bundle to view pricing and begin your investment
-          </p>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setDemoDialogOpen(true)}
+                className="gap-2 px-8 border-gold/30 text-gold hover:bg-gold/10 hover:text-gold"
+              >
+                <FlaskConical className="w-5 h-5" />
+                Try Demo Investment
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p>Experience real-time investment growth with simulated funds. See how your portfolio grows with our 3-day cycle: +25%, hold, -10%. No real money needed!</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
+        <p className="text-sm text-muted-foreground mt-4 text-center">
+          Select a bundle to invest, or try a risk-free demo first
+        </p>
       </div>
 
       <PaymentUploadDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
+      />
+      <CreateDemoDialog
+        open={demoDialogOpen}
+        onOpenChange={setDemoDialogOpen}
       />
     </div>
   );
