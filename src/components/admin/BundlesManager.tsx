@@ -159,7 +159,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
     }
   };
 
-  const BundleForm = () => (
+  const bundleFormJSX = (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -369,7 +369,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
           <DialogHeader>
             <DialogTitle>Create New Bundle</DialogTitle>
           </DialogHeader>
-          <BundleForm />
+          {bundleFormJSX}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               Cancel
@@ -387,7 +387,7 @@ export function BundlesManager({ bundles, onAdd, onUpdate, onDelete }: BundlesMa
           <DialogHeader>
             <DialogTitle>Edit Bundle</DialogTitle>
           </DialogHeader>
-          <BundleForm />
+          {bundleFormJSX}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Cancel
