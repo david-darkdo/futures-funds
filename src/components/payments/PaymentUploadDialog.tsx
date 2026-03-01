@@ -22,7 +22,7 @@ import { Copy, CheckCircle, Upload, ArrowRight, ImageIcon, X } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { validateOptionalNumber, VALIDATION_LIMITS } from "@/lib/validation";
+import { validateOptionalNumber, validateTransactionId, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Bundle {
   id: string;
@@ -207,6 +207,17 @@ export function PaymentUploadDialog({
       validatedCryptoAmount = validation.value;
     }
 
+    // Validate txid if provided
+    let validatedTxid: string | null = null;
+    if (txid.trim()) {
+      const txidValidation = validateTransactionId(txid, selectedWalletData?.network);
+      if (!txidValidation.isValid) {
+        toast.error(txidValidation.error || "Invalid transaction ID");
+        return;
+      }
+      validatedTxid = txidValidation.sanitizedValue || null;
+    }
+
     setSubmitting(true);
 
     // Upload proof image if provided
@@ -220,7 +231,7 @@ export function PaymentUploadDialog({
       bundle_id: selectedBundle,
       crypto_amount: validatedCryptoAmount,
       crypto_currency: selectedWalletData?.currency || null,
-      txid: txid || null,
+      txid: validatedTxid,
       proof_url: proofUrl,
       status: "pending",
     });

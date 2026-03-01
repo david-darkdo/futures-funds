@@ -23,6 +23,7 @@ import { CheckCircle, XCircle, Eye, Clock, Copy } from "lucide-react";
 import { maskEmail } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { validateTransactionId } from "@/lib/validation";
 
 interface Profile {
   id: string;
@@ -64,8 +65,20 @@ export function WithdrawalsTable({ withdrawals, onApprove, onReject, showAll = f
 
   const handleApprove = async () => {
     if (!selectedWithdrawal) return;
+
+    // Validate txid if provided
+    let validatedTxid: string | undefined = undefined;
+    if (txid.trim()) {
+      const txidValidation = validateTransactionId(txid, selectedWithdrawal.network);
+      if (!txidValidation.isValid) {
+        toast.error(txidValidation.error || "Invalid transaction ID");
+        return;
+      }
+      validatedTxid = txidValidation.sanitizedValue || undefined;
+    }
+
     setProcessing(true);
-    await onApprove(selectedWithdrawal.id, txid);
+    await onApprove(selectedWithdrawal.id, validatedTxid);
     setTxid("");
     setApproveDialogOpen(false);
     setSelectedWithdrawal(null);
