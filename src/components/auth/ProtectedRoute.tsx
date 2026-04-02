@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Shield } from "lucide-react";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
