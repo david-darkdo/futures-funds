@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 
 interface AdminRouteProps {
   children: ReactNode;
