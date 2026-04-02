@@ -240,7 +240,7 @@ export function useMultiInvestment(): UseMultiInvestmentReturn {
 
     // Get the most recent or highest-value bundle as primary
     const primaryInvestment = activeInvestments[0];
-    const primaryBundleName = primaryInvestment?.bundle?.name || null;
+    const primaryBundleName = primaryInvestment?.bundle?.name || "Investment Bundle";
 
     return {
       totalInitialAmount,

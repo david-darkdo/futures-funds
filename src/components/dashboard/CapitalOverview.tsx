@@ -108,12 +108,12 @@ export function CapitalOverview({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {cards.map((card) => (
-          <div key={card.label} className="p-4 rounded-lg bg-secondary/50 border border-border/50">
+          <div key={card.label} className="p-4 rounded-lg bg-secondary/50 border border-border/50 overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
-              <card.icon className={cn("w-4 h-4", card.color)} />
-              <span className="text-sm text-muted-foreground">{card.label}</span>
+              <card.icon className={cn("w-4 h-4 shrink-0", card.color)} />
+              <span className="text-sm text-muted-foreground truncate">{card.label}</span>
             </div>
-            <p className={cn("text-xl font-bold", card.color)}>{card.value}</p>
+            <p className={cn("text-xl font-bold truncate", card.color)}>{card.value}</p>
             {card.subtitle && (
               <p className={cn("text-sm font-medium", card.color)}>{card.subtitle}</p>
             )}
