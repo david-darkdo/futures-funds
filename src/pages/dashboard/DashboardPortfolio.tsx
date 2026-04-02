@@ -233,8 +233,8 @@ export default function DashboardPortfolio() {
   }
 
   const bundleDisplayName = portfolio.activeInvestmentsCount > 1
-    ? `${portfolio.primaryBundleName} +${portfolio.activeInvestmentsCount - 1} more`
-    : portfolio.primaryBundleName;
+    ? `${portfolio.primaryBundleName || "Investment Bundle"} +${portfolio.activeInvestmentsCount - 1} more`
+    : (portfolio.primaryBundleName || "Investment Bundle");
 
   return (
     <div className="flex-1 p-4 lg:p-8 space-y-6">
