@@ -171,3 +171,35 @@
   background: hsla(42, 52%, 54%, 0.3);
   color: hsl(var(--foreground));
 }
+
+/* Logo Loader Animation */
+.logo-loader .logo-bar {
+  animation: logo-draw 2s ease-in-out infinite;
+}
+.logo-loader .logo-bar-1 { animation-delay: 0s; }
+.logo-loader .logo-bar-2 { animation-delay: 0.2s; }
+.logo-loader .logo-bar-3 { animation-delay: 0.4s; }
+
+.logo-loader .logo-line {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: logo-line-draw 2s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.logo-loader .logo-dot {
+  animation: logo-draw 2s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+@keyframes logo-draw {
+  0%, 100% { opacity: 0; transform: scaleY(0.3); transform-origin: bottom; }
+  30%, 70% { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
+}
+
+@keyframes logo-line-draw {
+  0%, 10% { stroke-dashoffset: 60; opacity: 0; }
+  20% { opacity: 1; }
+  50%, 70% { stroke-dashoffset: 0; opacity: 1; }
+  90%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
