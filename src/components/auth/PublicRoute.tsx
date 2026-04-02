@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 
 interface PublicRouteProps {
   children: React.ReactNode;
