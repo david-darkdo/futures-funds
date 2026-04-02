@@ -252,7 +252,7 @@ export function PaymentUploadDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle>
             {step === "select" && "Select Investment Bundle"}
             {step === "pay" && "Make Payment"}
@@ -265,217 +265,218 @@ export function PaymentUploadDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {step === "select" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Investment Bundle</Label>
-              <Select value={selectedBundle} onValueChange={setSelectedBundle}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a bundle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bundles.map((bundle) => (
-                    <SelectItem key={bundle.id} value={bundle.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{bundle.name}</span>
-                        <span className="text-gold ml-2">
-                          ${bundle.price_usd.toLocaleString()}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedBundleData && (
-              <div className="p-4 rounded-lg bg-secondary">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{selectedBundleData.name}</span>
-                  <span className="text-gold font-bold">
-                    ${selectedBundleData.price_usd.toLocaleString()}
-                  </span>
-                </div>
-                {selectedBundleData.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {selectedBundleData.description}
-                  </p>
-                )}
-                {selectedBundleData.daily_growth_rate && (
-                  <p className="text-sm text-teal mt-1">
-                    Target: {selectedBundleData.daily_growth_rate}% daily growth
-                  </p>
-                )}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+          {step === "select" && (
+            <div className="space-y-4 pb-1">
+              <div className="space-y-2">
+                <Label>Investment Bundle</Label>
+                <Select value={selectedBundle} onValueChange={setSelectedBundle}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a bundle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bundles.map((bundle) => (
+                      <SelectItem key={bundle.id} value={bundle.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{bundle.name}</span>
+                          <span className="text-gold ml-2">
+                            ${bundle.price_usd.toLocaleString()}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label>Payment Method</Label>
-              <Select value={selectedWallet} onValueChange={setSelectedWallet}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {wallets.map((wallet) => (
-                    <SelectItem key={wallet.id} value={wallet.id}>
-                      {wallet.currency} ({wallet.network})
-                      {wallet.label && ` - ${wallet.label}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {wallets.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No payment methods available. Please contact support.
-              </p>
-            )}
-          </div>
-        )}
-
-        {step === "pay" && selectedWalletData && selectedBundleData && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-secondary text-center">
-              <p className="text-sm text-muted-foreground mb-1">Amount to send</p>
-              <p className="text-2xl font-bold text-gold">
-                ${selectedBundleData.price_usd.toLocaleString()}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                in {selectedWalletData.currency}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Send {selectedWalletData.currency} to:</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  readOnly
-                  value={selectedWalletData.address}
-                  className="font-mono text-sm"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyAddress}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <CheckCircle className="w-4 h-4 text-teal" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
+              {selectedBundleData && (
+                <div className="p-4 rounded-lg bg-secondary">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium">{selectedBundleData.name}</span>
+                    <span className="text-gold font-bold">
+                      ${selectedBundleData.price_usd.toLocaleString()}
+                    </span>
+                  </div>
+                  {selectedBundleData.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {selectedBundleData.description}
+                    </p>
                   )}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Network: {selectedWalletData.network}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-lg border border-gold/20 bg-gold/5">
-              <p className="text-sm font-medium text-gold mb-1">Important</p>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Send the exact amount in crypto equivalent</li>
-                <li>• Only send {selectedWalletData.currency} on {selectedWalletData.network}</li>
-                <li>• Your deposit will be verified within 24 hours</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {step === "confirm" && (
-          <div className="space-y-4">
-            {/* Payment Proof Upload */}
-            <div className="space-y-2">
-              <Label>Payment Proof Screenshot</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              
-              {proofPreview ? (
-                <div className="relative rounded-lg overflow-hidden border border-border">
-                  <img
-                    src={proofPreview}
-                    alt="Payment proof preview"
-                    className="w-full h-48 object-cover"
-                  />
-                  <button
-                    onClick={removeProofFile}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {selectedBundleData.daily_growth_rate && (
+                    <p className="text-sm text-teal mt-1">
+                      Target: {selectedBundleData.daily_growth_rate}% daily growth
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-gold/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <ImageIcon className="w-8 h-8" />
-                  <span className="text-sm">Click to upload proof screenshot</span>
-                </button>
               )}
-              <p className="text-xs text-muted-foreground">
-                Upload a screenshot of your completed transaction
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cryptoAmount">Amount Sent (optional)</Label>
-              <Input
-                id="cryptoAmount"
-                type="number"
-                step="any"
-                placeholder={`Amount in ${selectedWalletData?.currency || "crypto"}`}
-                value={cryptoAmount}
-                onChange={(e) => setCryptoAmount(e.target.value)}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <Select value={selectedWallet} onValueChange={setSelectedWallet}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {wallets.map((wallet) => (
+                      <SelectItem key={wallet.id} value={wallet.id}>
+                        {wallet.currency} ({wallet.network})
+                        {wallet.label && ` - ${wallet.label}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="txid">Transaction ID (optional)</Label>
-              <Input
-                id="txid"
-                placeholder="Enter your transaction hash"
-                value={txid}
-                onChange={(e) => setTxid(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Providing the transaction ID helps us verify your payment faster
-              </p>
+              {wallets.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No payment methods available. Please contact support.
+                </p>
+              )}
             </div>
+          )}
 
-            <div className="p-4 rounded-lg bg-secondary">
-              <p className="text-sm font-medium mb-2">Summary</p>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bundle:</span>
-                  <span>{selectedBundleData?.name}</span>
+          {step === "pay" && selectedWalletData && selectedBundleData && (
+            <div className="space-y-4 pb-1">
+              <div className="p-4 rounded-lg bg-secondary text-center">
+                <p className="text-sm text-muted-foreground mb-1">Amount to send</p>
+                <p className="text-2xl font-bold text-gold">
+                  ${selectedBundleData.price_usd.toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  in {selectedWalletData.currency}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Send {selectedWalletData.currency} to:</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={selectedWalletData.address}
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={copyAddress}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <CheckCircle className="w-4 h-4 text-teal" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span className="text-gold">${selectedBundleData?.price_usd.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Method:</span>
-                  <span>{selectedWalletData?.currency}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Proof:</span>
-                  <span className={proofFile ? "text-teal" : "text-muted-foreground"}>
-                    {proofFile ? "Uploaded" : "Not provided"}
-                  </span>
+                <p className="text-xs text-muted-foreground">
+                  Network: {selectedWalletData.network}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-lg border border-gold/20 bg-gold/5">
+                <p className="text-sm font-medium text-gold mb-1">Important</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• Send the exact amount in crypto equivalent</li>
+                  <li>• Only send {selectedWalletData.currency} on {selectedWalletData.network}</li>
+                  <li>• Your deposit will be verified within 24 hours</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {step === "confirm" && (
+            <div className="space-y-4 pb-1">
+              <div className="space-y-2">
+                <Label>Payment Proof Screenshot</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {proofPreview ? (
+                  <div className="relative rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={proofPreview}
+                      alt="Payment proof preview"
+                      className="w-full h-48 object-cover"
+                    />
+                    <button
+                      onClick={removeProofFile}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-gold/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <ImageIcon className="w-8 h-8" />
+                    <span className="text-sm">Click to upload proof screenshot</span>
+                  </button>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Upload a screenshot of your completed transaction
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cryptoAmount">Amount Sent (optional)</Label>
+                <Input
+                  id="cryptoAmount"
+                  type="number"
+                  step="any"
+                  placeholder={`Amount in ${selectedWalletData?.currency || "crypto"}`}
+                  value={cryptoAmount}
+                  onChange={(e) => setCryptoAmount(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="txid">Transaction ID (optional)</Label>
+                <Input
+                  id="txid"
+                  placeholder="Enter your transaction hash"
+                  value={txid}
+                  onChange={(e) => setTxid(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Providing the transaction ID helps us verify your payment faster
+                </p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-secondary">
+                <p className="text-sm font-medium mb-2">Summary</p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Bundle:</span>
+                    <span>{selectedBundleData?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount:</span>
+                    <span className="text-gold">${selectedBundleData?.price_usd.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Method:</span>
+                    <span>{selectedWalletData?.currency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Proof:</span>
+                    <span className={proofFile ? "text-teal" : "text-muted-foreground"}>
+                      {proofFile ? "Uploaded" : "Not provided"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 gap-2 border-t border-border pt-4">
           {step === "select" && (
             <>
               <Button variant="outline" onClick={() => onOpenChange(false)}>
