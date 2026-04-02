@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 
 interface DashboardRouteProps {
   children: React.ReactNode;
