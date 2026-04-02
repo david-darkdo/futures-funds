@@ -93,7 +93,7 @@ export function WhatsAppSupport() {
       {/* Chat Popup */}
       <div
         className={cn(
-          "fixed z-[9999] bottom-24 right-6 w-80 rounded-2xl bg-background border border-border shadow-2xl transition-all duration-300 origin-bottom-right",
+          "fixed z-40 bottom-24 right-6 w-80 rounded-2xl bg-background border border-border shadow-2xl transition-all duration-300 origin-bottom-right",
           open ? "scale-100 opacity-100 pointer-events-auto" : "scale-90 opacity-0 pointer-events-none"
         )}
         style={{
@@ -146,7 +146,7 @@ export function WhatsAppSupport() {
       <div
         ref={buttonRef}
         className={cn(
-          "fixed z-[9999] bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center cursor-grab shadow-lg transition-transform duration-200 hover:scale-110 active:cursor-grabbing select-none",
+          "fixed z-40 bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center cursor-grab shadow-lg transition-transform duration-200 hover:scale-110 active:cursor-grabbing select-none",
           dragging && "scale-105"
         )}
         style={{
