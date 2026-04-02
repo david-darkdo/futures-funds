@@ -2,6 +2,7 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { LogoLoader } from "@/components/ui/LogoLoader";
 
 interface AdminRouteProps {
   children: ReactNode;
@@ -24,10 +25,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <LogoLoader />
       </div>
     );
   }
