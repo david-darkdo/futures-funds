@@ -25,6 +25,7 @@ import AdminWithdrawals from "./pages/AdminWithdrawals";
 import AdminWallets from "./pages/AdminWallets";
 import AdminUsers from "./pages/AdminUsers";
 import AdminBundles from "./pages/AdminBundles";
+import AdminProofs from "./pages/AdminProofs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
