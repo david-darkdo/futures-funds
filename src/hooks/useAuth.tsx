@@ -125,17 +125,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!isMounted) return;
 
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
+      // Preserve referential equality when the user hasn't actually changed.
+      // Token refreshes / visibility-driven re-syncs would otherwise create a
+      // new user object and force every dependent hook to refetch, which can
+      // unmount dialogs (e.g. losing a selected file in the payment upload).
+      const newUser = newSession?.user ?? null;
+      setSession((prev) =>
+        prev?.access_token === newSession?.access_token ? prev : newSession
+      );
+      setUser((prev) => (prev?.id === newUser?.id ? prev : newUser));
 
-      if (!newSession?.user) {
+      if (!newUser) {
         roleUserIdRef.current = null;
         setRole(null);
         setLoadingSafe(false);
         return;
       }
 
-      const userId = newSession.user.id;
+      const userId = newUser.id;
 
       // Only fetch if we don't already have a cached role for this user.
       if (roleUserIdRef.current === userId) {
