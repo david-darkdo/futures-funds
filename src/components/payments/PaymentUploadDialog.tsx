@@ -391,7 +391,6 @@ export function PaymentUploadDialog({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
                   onChange={handleFileSelect}
                   className="hidden"
                 />

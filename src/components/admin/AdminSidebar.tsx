@@ -10,7 +10,8 @@ import {
   LogOut,
   Wallet,
   X,
-  ArrowDownToLine
+  ArrowDownToLine,
+  Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ interface AdminSidebarProps {
 const adminSidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Payments", href: "/admin/payments", icon: CreditCard, countKey: "payments" as const },
+  { name: "Payment Proofs", href: "/admin/proofs", icon: ImageIcon },
   { name: "Investments", href: "/admin/investments", icon: TrendingUp },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: ArrowDownToLine, countKey: "withdrawals" as const },
   { name: "Users", href: "/admin/users", icon: Users },

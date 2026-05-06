@@ -25,6 +25,7 @@ import AdminWithdrawals from "./pages/AdminWithdrawals";
 import AdminWallets from "./pages/AdminWallets";
 import AdminUsers from "./pages/AdminUsers";
 import AdminBundles from "./pages/AdminBundles";
+import AdminProofs from "./pages/AdminProofs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/admin/wallets" element={<AdminRoute><AdminWallets /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
+            <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
