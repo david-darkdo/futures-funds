@@ -88,6 +88,7 @@ const App = () => (
             <Route path="/admin/wallets" element={<AdminRoute><AdminWallets /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
+            <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
