@@ -21,6 +21,7 @@ interface DashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   userName: string | null;
+  avatarUrl?: string | null;
   loading?: boolean;
   onSignOut: () => void;
 }
@@ -75,10 +76,12 @@ export function DashboardSidebar({
   isOpen,
   onClose,
   userName,
+  avatarUrl,
   loading = false,
   onSignOut
 }: DashboardSidebarProps) {
   const location = useLocation();
+  const { t } = useTranslation();
   const { state: userState, loading: stateLoading } = useUserState();
   const displayName = userName || "User";
 
@@ -139,10 +142,14 @@ export function DashboardSidebar({
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
-                  <span className="text-gold font-semibold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-gold font-semibold">
+                      {displayName.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium text-foreground truncate">{displayName}</p>
