@@ -17,6 +17,20 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
 
+const LINK_KEYS: Record<string, string> = {
+  Homepage: "dashboard.homepage",
+  "Get Started": "dashboard.getStarted",
+  "Payment Status": "dashboard.paymentStatus",
+  "My Portfolio": "dashboard.myPortfolio",
+  "Transaction History": "dashboard.transactionHistory",
+  Settings: "dashboard.settings",
+};
+
+const translateLink = (t: (k: string) => string, name: string) => {
+  const key = LINK_KEYS[name];
+  return key ? t(key) : name;
+};
+
 interface DashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
