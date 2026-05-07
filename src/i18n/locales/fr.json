@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "howItWorks": "Comment ça marche",
+    "plans": "Forfaits",
+    "security": "Sécurité",
+    "signIn": "Connexion",
+    "getStarted": "Commencer",
+    "language": "Langue"
+  },
+  "hero": { "viewPlans": "Voir les forfaits" },
+  "dashboard": {
+    "homepage": "Accueil",
+    "getStarted": "Commencer",
+    "paymentStatus": "Statut du paiement",
+    "myPortfolio": "Mon portefeuille",
+    "transactionHistory": "Historique des transactions",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "welcomeBack": "Bon retour",
+    "newInvestment": "Nouvel investissement",
+    "withdraw": "Retirer"
+  },
+  "settings": {
+    "title": "Profil et paramètres",
+    "subtitle": "Gérez votre profil, l'apparence et la langue",
+    "profilePicture": "Photo de profil",
+    "uploadPhoto": "Téléverser une photo",
+    "removePhoto": "Supprimer",
+    "fullName": "Nom complet",
+    "email": "E-mail",
+    "emailLocked": "L'e-mail ne peut pas être modifié",
+    "appearance": "Apparence",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair",
+    "language": "Langue",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "saved": "Paramètres enregistrés",
+    "uploadFailed": "Échec du téléversement",
+    "saveFailed": "Impossible d'enregistrer les paramètres"
+  },
+  "demo": {
+    "title": "Essayez avant d'investir",
+    "description": "Découvrez le cycle complet d'investissement avec des fonds simulés. Suivez la performance sur votre tableau de bord avant d'engager du capital réel.",
+    "createBtn": "Créer un investissement démo",
+    "signupBtn": "S'inscrire et essayer la démo",
+    "noCard": "Aucune carte requise • Accès instantané • Expérience complète",
+    "dialogTitle": "Créer un investissement démo",
+    "dialogDesc": "Vivez la croissance d'un investissement en temps réel avec des fonds simulés. Aucun argent réel.",
+    "standardPlan": "Plan Standard",
+    "amountLabel": "Montant simulé ($)",
+    "amountHint": "Choisissez n'importe quel montant — il s'agit d'une simulation.",
+    "cancel": "Annuler",
+    "start": "Démarrer la démo",
+    "creating": "Création..."
+  }
+}

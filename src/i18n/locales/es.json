@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "howItWorks": "Cómo funciona",
+    "plans": "Planes",
+    "security": "Seguridad",
+    "signIn": "Iniciar sesión",
+    "getStarted": "Comenzar",
+    "language": "Idioma"
+  },
+  "hero": { "viewPlans": "Ver planes" },
+  "dashboard": {
+    "homepage": "Inicio",
+    "getStarted": "Comenzar",
+    "paymentStatus": "Estado del pago",
+    "myPortfolio": "Mi cartera",
+    "transactionHistory": "Historial de transacciones",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "welcomeBack": "Bienvenido",
+    "newInvestment": "Nueva inversión",
+    "withdraw": "Retirar"
+  },
+  "settings": {
+    "title": "Perfil y ajustes",
+    "subtitle": "Gestiona tu perfil, apariencia e idioma",
+    "profilePicture": "Foto de perfil",
+    "uploadPhoto": "Subir foto",
+    "removePhoto": "Eliminar",
+    "fullName": "Nombre completo",
+    "email": "Correo",
+    "emailLocked": "El correo no se puede cambiar",
+    "appearance": "Apariencia",
+    "darkMode": "Modo oscuro",
+    "lightMode": "Modo claro",
+    "language": "Idioma",
+    "save": "Guardar cambios",
+    "saving": "Guardando...",
+    "saved": "Ajustes guardados",
+    "uploadFailed": "Error al subir",
+    "saveFailed": "No se pudieron guardar los ajustes"
+  },
+  "demo": {
+    "title": "Prueba antes de invertir",
+    "description": "Experimenta el ciclo completo de inversión con fondos simulados. Sigue el rendimiento en tu panel antes de invertir capital real.",
+    "createBtn": "Crear inversión demo",
+    "signupBtn": "Registrarse y probar demo",
+    "noCard": "Sin tarjeta • Acceso instantáneo • Experiencia completa",
+    "dialogTitle": "Crear inversión demo",
+    "dialogDesc": "Experimenta el crecimiento de inversión en tiempo real con fondos simulados.",
+    "standardPlan": "Plan Estándar",
+    "amountLabel": "Monto simulado ($)",
+    "amountHint": "Elige cualquier monto — es una simulación.",
+    "cancel": "Cancelar",
+    "start": "Iniciar demo",
+    "creating": "Creando..."
+  }
+}
