@@ -216,7 +216,7 @@ export function DashboardSidebar({
               onClick={onSignOut}
             >
               <LogOut className="w-5 h-5" />
-              <span>Logout</span>
+              <span>{t("dashboard.logout")}</span>
             </Button>
           </div>
         </div>
