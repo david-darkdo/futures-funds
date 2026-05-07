@@ -8,6 +8,9 @@ interface Profile {
   email: string | null;
   status: string | null;
   created_at: string | null;
+  avatar_url?: string | null;
+  theme?: string | null;
+  language?: string | null;
 }
 
 interface Bundle {
