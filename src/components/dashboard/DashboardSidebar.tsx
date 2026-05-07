@@ -10,8 +10,10 @@ import {
   X,
   LockKeyhole,
   Home,
-  Receipt
+  Receipt,
+  Settings as SettingsIcon
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
 
@@ -60,6 +62,12 @@ const sidebarLinks: {
     href: "/dashboard/transactions", 
     icon: Receipt,
     allowedStates: ["portfolio"]
+  },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: SettingsIcon,
+    allowedStates: ["start", "pending", "portfolio", "loading"],
   },
 ];
 
