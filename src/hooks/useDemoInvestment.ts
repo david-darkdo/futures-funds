@@ -169,12 +169,12 @@ export function useDemoInvestment() {
 
     const { currentBalance, dailyBalances } = calculateDemoGrowth(
       demoInvestment.initial_amount,
-      demoInvestment.created_at
+      demoInvestment.created_at,
+      `${demoInvestment.user_id}:${demoInvestment.id}`
     );
 
     const growthPercentage = ((currentBalance - demoInvestment.initial_amount) / demoInvestment.initial_amount) * 100;
 
-    // Chart data — limit to last 30 points for readability
     const chartPoints = dailyBalances.slice(-30);
     const chartData: DemoChartDataPoint[] = chartPoints.map((d) => ({
       date: d.date.toISOString(),
@@ -182,13 +182,12 @@ export function useDemoInvestment() {
       label: `Day ${d.day}`,
     }));
 
-    // Timeline events — last 10 actions
     const timelineEvents: DemoTimelineEvent[] = dailyBalances
       .slice(-10)
       .reverse()
-      .map((d, i) => ({
+      .map((d) => ({
         id: `demo-event-${d.day}`,
-        type: d.action.startsWith("+") ? "growth" as const : d.action.startsWith("-") ? "system" as const : "payment" as const,
+        type: d.pct > 0 ? "growth" as const : d.pct < 0 ? "system" as const : "payment" as const,
         title: d.day === 0 ? "Demo Investment Started" : `Demo Day ${d.day}`,
         description: d.day === 0
           ? `Simulated investment of $${demoInvestment.initial_amount.toLocaleString()}`
@@ -197,11 +196,10 @@ export function useDemoInvestment() {
         amount: d.balance - (dailyBalances[dailyBalances.indexOf(d) - 1]?.balance ?? d.balance),
       }));
 
-    // Daily change
-    const todayCycleDay = dailyBalances.length > 1 ? ((dailyBalances.length - 2) % 3) : -1;
-    let dailyChange = 0;
-    if (todayCycleDay === 0) dailyChange = 25;
-    else if (todayCycleDay === 2) dailyChange = -10;
+    const todayEntry = dailyBalances[dailyBalances.length - 1];
+    const dailyChange = todayEntry ? todayEntry.pct : 0;
+    void dailyChange;
+    const _ignored = 0; void _ignored;
 
     return { currentValue: currentBalance, growthPercentage, chartData, timelineEvents, dailyChange };
   }, [demoInvestment]);
