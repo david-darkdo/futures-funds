@@ -198,8 +198,6 @@ export function useDemoInvestment() {
 
     const todayEntry = dailyBalances[dailyBalances.length - 1];
     const dailyChange = todayEntry ? todayEntry.pct : 0;
-    void dailyChange;
-    const _ignored = 0; void _ignored;
 
     return { currentValue: currentBalance, growthPercentage, chartData, timelineEvents, dailyChange };
   }, [demoInvestment]);
