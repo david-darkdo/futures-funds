@@ -9,6 +9,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { PublicRoute } from "@/components/auth/PublicRoute";
 import { DashboardRoute } from "@/components/auth/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -18,6 +19,7 @@ import DashboardStart from "./pages/dashboard/DashboardStart";
 import DashboardPending from "./pages/dashboard/DashboardPending";
 import DashboardPortfolio from "./pages/dashboard/DashboardPortfolio";
 import DashboardTransactions from "./pages/dashboard/DashboardTransactions";
+import DashboardSettings from "./pages/dashboard/DashboardSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPayments from "./pages/AdminPayments";
 import AdminInvestments from "./pages/AdminInvestments";
@@ -32,69 +34,42 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-            
-            {/* Dashboard routes with state-based routing */}
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-              <Route index element={<DashboardIndex />} />
-              <Route 
-                path="start" 
-                element={
-                  <DashboardRoute requiredState="start">
-                    <DashboardStart />
-                  </DashboardRoute>
-                } 
-              />
-              <Route 
-                path="pending" 
-                element={
-                  <DashboardRoute requiredState="pending">
-                    <DashboardPending />
-                  </DashboardRoute>
-                } 
-              />
-              <Route 
-                path="portfolio" 
-                element={
-                  <DashboardRoute requiredState="portfolio">
-                    <DashboardPortfolio />
-                  </DashboardRoute>
-                } 
-              />
-              <Route 
-                path="transactions" 
-                element={
-                  <DashboardRoute requiredState="portfolio">
-                    <DashboardTransactions />
-                  </DashboardRoute>
-                } 
-              />
-            </Route>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
-            {/* Admin routes - locked to admin role */}
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
-            <Route path="/admin/investments" element={<AdminRoute><AdminInvestments /></AdminRoute>} />
-            <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawals /></AdminRoute>} />
-            <Route path="/admin/wallets" element={<AdminRoute><AdminWallets /></AdminRoute>} />
-            <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-            <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
-            <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                <Route index element={<DashboardIndex />} />
+                <Route path="start" element={<DashboardRoute requiredState="start"><DashboardStart /></DashboardRoute>} />
+                <Route path="pending" element={<DashboardRoute requiredState="pending"><DashboardPending /></DashboardRoute>} />
+                <Route path="portfolio" element={<DashboardRoute requiredState="portfolio"><DashboardPortfolio /></DashboardRoute>} />
+                <Route path="transactions" element={<DashboardRoute requiredState="portfolio"><DashboardTransactions /></DashboardRoute>} />
+                <Route path="settings" element={<DashboardSettings />} />
+              </Route>
+
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
+              <Route path="/admin/investments" element={<AdminRoute><AdminInvestments /></AdminRoute>} />
+              <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawals /></AdminRoute>} />
+              <Route path="/admin/wallets" element={<AdminRoute><AdminWallets /></AdminRoute>} />
+              <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+              <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
+              <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

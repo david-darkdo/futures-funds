@@ -1,24 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, Plus, ArrowDownToLine, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData, calculateGrowth } from "@/hooks/useDashboardData";
+import { useTheme } from "@/components/ThemeProvider";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { WhatsAppSupport } from "@/components/dashboard/WhatsAppSupport";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { setTheme } = useTheme();
   const { profile, payments, activePayment, loading } = useDashboardData();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.language && profile.language !== i18n.language) {
+      i18n.changeLanguage(profile.language);
+    }
+    if (profile.theme === "light" || profile.theme === "dark") {
+      setTheme(profile.theme);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.language, profile?.theme]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,12 +77,12 @@ export default function DashboardLayout() {
   const StatusIcon = getStatusIcon(accountStatus);
   const displayName = profile?.full_name || "Investor";
 
-  // Determine page title based on route
   const getPageTitle = () => {
-    if (location.pathname.includes("/start")) return "Get Started";
-    if (location.pathname.includes("/pending")) return "Payment Status";
-    if (location.pathname.includes("/transactions")) return "Transaction History";
-    return "Portfolio Overview";
+    if (location.pathname.includes("/start")) return t("dashboard.getStarted");
+    if (location.pathname.includes("/pending")) return t("dashboard.paymentStatus");
+    if (location.pathname.includes("/transactions")) return t("dashboard.transactionHistory");
+    if (location.pathname.includes("/settings")) return t("dashboard.settings");
+    return t("dashboard.myPortfolio");
   };
 
   return (
@@ -75,6 +91,7 @@ export default function DashboardLayout() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         userName={profile?.full_name || null}
+        avatarUrl={profile?.avatar_url || null}
         loading={loading}
         onSignOut={handleSignOut}
       />
@@ -86,6 +103,7 @@ export default function DashboardLayout() {
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="lg:hidden p-2 text-foreground"
+                aria-label="Menu"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -95,7 +113,7 @@ export default function DashboardLayout() {
                   <Skeleton className="h-4 w-40 mt-1" />
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Welcome back, {displayName}
+                    {t("dashboard.welcomeBack")}, {displayName}
                   </p>
                 )}
               </div>
@@ -103,6 +121,7 @@ export default function DashboardLayout() {
 
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2">
+                <LanguageSwitcher />
                 <Button
                   variant="gold-outline"
                   size="sm"
@@ -110,7 +129,7 @@ export default function DashboardLayout() {
                   className="gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  New Investment
+                  {t("dashboard.newInvestment")}
                 </Button>
                 {activePayment && (
                   <Button
@@ -120,7 +139,7 @@ export default function DashboardLayout() {
                     className="gap-2"
                   >
                     <ArrowDownToLine className="w-4 h-4" />
-                    Withdraw
+                    {t("dashboard.withdraw")}
                   </Button>
                 )}
               </div>

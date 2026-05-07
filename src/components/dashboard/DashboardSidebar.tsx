@@ -10,15 +10,32 @@ import {
   X,
   LockKeyhole,
   Home,
-  Receipt
+  Receipt,
+  Settings as SettingsIcon
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useUserState, UserDashboardState } from "@/hooks/useUserState";
+
+const LINK_KEYS: Record<string, string> = {
+  Homepage: "dashboard.homepage",
+  "Get Started": "dashboard.getStarted",
+  "Payment Status": "dashboard.paymentStatus",
+  "My Portfolio": "dashboard.myPortfolio",
+  "Transaction History": "dashboard.transactionHistory",
+  Settings: "dashboard.settings",
+};
+
+const translateLink = (t: (k: string) => string, name: string) => {
+  const key = LINK_KEYS[name];
+  return key ? t(key) : name;
+};
 
 interface DashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   userName: string | null;
+  avatarUrl?: string | null;
   loading?: boolean;
   onSignOut: () => void;
 }
@@ -61,16 +78,24 @@ const sidebarLinks: {
     icon: Receipt,
     allowedStates: ["portfolio"]
   },
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: SettingsIcon,
+    allowedStates: ["start", "pending", "portfolio", "loading"],
+  },
 ];
 
 export function DashboardSidebar({
   isOpen,
   onClose,
   userName,
+  avatarUrl,
   loading = false,
   onSignOut
 }: DashboardSidebarProps) {
   const location = useLocation();
+  const { t } = useTranslation();
   const { state: userState, loading: stateLoading } = useUserState();
   const displayName = userName || "User";
 
@@ -131,10 +156,14 @@ export function DashboardSidebar({
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
-                  <span className="text-gold font-semibold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-gold font-semibold">
+                      {displayName.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium text-foreground truncate">{displayName}</p>
@@ -163,14 +192,14 @@ export function DashboardSidebar({
                       )}
                     >
                       <link.icon className="w-5 h-5" />
-                      <span className="font-medium">{link.name}</span>
+                      <span className="font-medium">{translateLink(t, link.name)}</span>
                     </Link>
                   ) : (
                     <div
                       className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed"
                     >
                       <link.icon className="w-5 h-5" />
-                      <span className="font-medium">{link.name}</span>
+                      <span className="font-medium">{translateLink(t, link.name)}</span>
                       <LockKeyhole className="w-4 h-4 ml-auto" />
                     </div>
                   )}
@@ -187,7 +216,7 @@ export function DashboardSidebar({
               onClick={onSignOut}
             >
               <LogOut className="w-5 h-5" />
-              <span>Logout</span>
+              <span>{t("dashboard.logout")}</span>
             </Button>
           </div>
         </div>

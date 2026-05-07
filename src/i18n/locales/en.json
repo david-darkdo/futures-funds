@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "howItWorks": "How It Works",
+    "plans": "Plans",
+    "security": "Security",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "language": "Language"
+  },
+  "hero": {
+    "viewPlans": "View Plans"
+  },
+  "dashboard": {
+    "homepage": "Homepage",
+    "getStarted": "Get Started",
+    "paymentStatus": "Payment Status",
+    "myPortfolio": "My Portfolio",
+    "transactionHistory": "Transaction History",
+    "settings": "Settings",
+    "logout": "Logout",
+    "welcomeBack": "Welcome back",
+    "newInvestment": "New Investment",
+    "withdraw": "Withdraw"
+  },
+  "settings": {
+    "title": "Profile & Settings",
+    "subtitle": "Manage your profile, appearance and language",
+    "profilePicture": "Profile Picture",
+    "uploadPhoto": "Upload Photo",
+    "removePhoto": "Remove",
+    "fullName": "Full Name",
+    "email": "Email",
+    "emailLocked": "Email cannot be changed",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "language": "Language",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "saved": "Settings saved",
+    "uploadFailed": "Upload failed",
+    "saveFailed": "Could not save settings"
+  },
+  "demo": {
+    "title": "Try Before You Invest",
+    "description": "Experience the full investment lifecycle with simulated funds. See how growth works, track performance on your dashboard, and feel confident before committing real capital.",
+    "createBtn": "Create Demo Investment",
+    "signupBtn": "Sign Up & Try Demo",
+    "noCard": "No credit card needed • Instant access • Full dashboard experience",
+    "dialogTitle": "Create Demo Investment",
+    "dialogDesc": "Experience real-time investment growth with simulated funds. No real money involved.",
+    "standardPlan": "Standard Plan",
+    "amountLabel": "Simulated Investment Amount ($)",
+    "amountHint": "Choose any amount — this is a simulation with no real funds.",
+    "cancel": "Cancel",
+    "start": "Start Demo",
+    "creating": "Creating..."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "howItWorks": "So funktioniert's",
+    "plans": "Pakete",
+    "security": "Sicherheit",
+    "signIn": "Anmelden",
+    "getStarted": "Loslegen",
+    "language": "Sprache"
+  },
+  "hero": { "viewPlans": "Pakete ansehen" },
+  "dashboard": {
+    "homepage": "Startseite",
+    "getStarted": "Loslegen",
+    "paymentStatus": "Zahlungsstatus",
+    "myPortfolio": "Mein Portfolio",
+    "transactionHistory": "Transaktionsverlauf",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "welcomeBack": "Willkommen zurück",
+    "newInvestment": "Neue Investition",
+    "withdraw": "Auszahlen"
+  },
+  "settings": {
+    "title": "Profil & Einstellungen",
+    "subtitle": "Verwalten Sie Profil, Darstellung und Sprache",
+    "profilePicture": "Profilbild",
+    "uploadPhoto": "Foto hochladen",
+    "removePhoto": "Entfernen",
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "emailLocked": "E-Mail kann nicht geändert werden",
+    "appearance": "Darstellung",
+    "darkMode": "Dunkler Modus",
+    "lightMode": "Heller Modus",
+    "language": "Sprache",
+    "save": "Speichern",
+    "saving": "Speichern...",
+    "saved": "Einstellungen gespeichert",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "saveFailed": "Einstellungen konnten nicht gespeichert werden"
+  },
+  "demo": {
+    "title": "Testen Sie vor dem Investieren",
+    "description": "Erleben Sie den gesamten Investmentzyklus mit simulierten Mitteln. Verfolgen Sie die Performance, bevor Sie echtes Kapital einsetzen.",
+    "createBtn": "Demo-Investition erstellen",
+    "signupBtn": "Anmelden & Demo testen",
+    "noCard": "Keine Karte nötig • Sofortzugang • Volle Erfahrung",
+    "dialogTitle": "Demo-Investition erstellen",
+    "dialogDesc": "Erleben Sie das Wachstum einer Investition in Echtzeit mit simulierten Mitteln.",
+    "standardPlan": "Standard Plan",
+    "amountLabel": "Simulierter Betrag ($)",
+    "amountHint": "Wählen Sie einen beliebigen Betrag — Simulation.",
+    "cancel": "Abbrechen",
+    "start": "Demo starten",
+    "creating": "Erstellen..."
+  }
+}

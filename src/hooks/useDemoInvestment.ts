@@ -32,37 +32,85 @@ interface DemoTimelineEvent {
 }
 
 /**
- * Deterministic growth calculation for demo investments.
- * Cycle repeats every 3 days:
- *   Day 1: +25% of current total
- *   Day 2: no change
- *   Day 3: -10% of current total
+ * Mulberry32 — fast deterministic PRNG.
+ * Same (seed, day) always produces the same daily change, so a user
+ * sees a stable history but every user gets a unique trajectory.
  */
-function calculateDemoGrowth(initialAmount: number, createdAt: string) {
+function mulberry32(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(s: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/**
+ * Unpredictable demo growth with strong overall uptrend.
+ * Each day's % change is drawn from a per-user seeded RNG with:
+ *   - large positive bursts (~+8% to +25%) on selected days
+ *   - smaller negative dips (~-2% to -15%) on other selected days
+ *   - many "hold" days for realism
+ *   - average daily drift skewed positive => long-term clear uptrend
+ */
+function calculateDemoGrowth(initialAmount: number, createdAt: string, seedKey: string) {
   const start = new Date(createdAt);
   const now = new Date();
   const msPerDay = 86400000;
   const totalDays = Math.floor((now.getTime() - start.getTime()) / msPerDay);
 
+  const baseSeed = hashString(seedKey);
+
   let balance = initialAmount;
-  const dailyBalances: { day: number; balance: number; date: Date; action: string }[] = [
-    { day: 0, balance: initialAmount, date: start, action: "Initial deposit" },
+  const dailyBalances: { day: number; balance: number; date: Date; action: string; pct: number }[] = [
+    { day: 0, balance: initialAmount, date: start, action: "Initial deposit", pct: 0 },
   ];
 
   for (let d = 1; d <= totalDays; d++) {
-    const cycleDay = ((d - 1) % 3); // 0, 1, 2
-    let action = "";
-    if (cycleDay === 0) {
-      balance = balance * 1.25;
-      action = "+25% growth applied";
-    } else if (cycleDay === 1) {
-      action = "Holding steady";
+    // Per-day deterministic RNG so history doesn't drift between renders.
+    const rng = mulberry32(baseSeed ^ (d * 0x9E3779B1));
+    const r = rng();
+    const r2 = rng();
+
+    let pct = 0; // percent change for this day
+    // Distribution: 35% hold, 40% positive move, 25% negative move
+    if (r < 0.35) {
+      pct = 0;
+    } else if (r < 0.75) {
+      // Positive: 3% .. 25% (occasional +20% spikes)
+      const magnitude = r2 < 0.15 ? 15 + r2 * 100 : 3 + r2 * 12; // mostly modest, sometimes big
+      pct = +magnitude.toFixed(2);
     } else {
-      balance = balance * 0.9;
-      action = "-10% market adjustment";
+      // Negative: -2% .. -15%
+      const magnitude = r2 < 0.2 ? 8 + r2 * 35 : 2 + r2 * 6;
+      pct = -+magnitude.toFixed(2);
     }
+    // Bias slightly upward to guarantee long-term uptrend
+    pct += 0.4;
+
+    const before = balance;
+    balance = Math.max(initialAmount * 0.5, balance * (1 + pct / 100));
+    const action =
+      pct > 0
+        ? `+${pct.toFixed(2)}% growth`
+        : pct < 0
+        ? `${pct.toFixed(2)}% adjustment`
+        : "Holding steady";
+
     const dayDate = new Date(start.getTime() + d * msPerDay);
-    dailyBalances.push({ day: d, balance, date: dayDate, action });
+    dailyBalances.push({ day: d, balance, date: dayDate, action, pct });
+    void before;
   }
 
   return { currentBalance: balance, totalDays, dailyBalances };
@@ -121,12 +169,12 @@ export function useDemoInvestment() {
 
     const { currentBalance, dailyBalances } = calculateDemoGrowth(
       demoInvestment.initial_amount,
-      demoInvestment.created_at
+      demoInvestment.created_at,
+      `${demoInvestment.user_id}:${demoInvestment.id}`
     );
 
     const growthPercentage = ((currentBalance - demoInvestment.initial_amount) / demoInvestment.initial_amount) * 100;
 
-    // Chart data — limit to last 30 points for readability
     const chartPoints = dailyBalances.slice(-30);
     const chartData: DemoChartDataPoint[] = chartPoints.map((d) => ({
       date: d.date.toISOString(),
@@ -134,13 +182,12 @@ export function useDemoInvestment() {
       label: `Day ${d.day}`,
     }));
 
-    // Timeline events — last 10 actions
     const timelineEvents: DemoTimelineEvent[] = dailyBalances
       .slice(-10)
       .reverse()
-      .map((d, i) => ({
+      .map((d) => ({
         id: `demo-event-${d.day}`,
-        type: d.action.startsWith("+") ? "growth" as const : d.action.startsWith("-") ? "system" as const : "payment" as const,
+        type: d.pct > 0 ? "growth" as const : d.pct < 0 ? "system" as const : "payment" as const,
         title: d.day === 0 ? "Demo Investment Started" : `Demo Day ${d.day}`,
         description: d.day === 0
           ? `Simulated investment of $${demoInvestment.initial_amount.toLocaleString()}`
@@ -149,11 +196,8 @@ export function useDemoInvestment() {
         amount: d.balance - (dailyBalances[dailyBalances.indexOf(d) - 1]?.balance ?? d.balance),
       }));
 
-    // Daily change
-    const todayCycleDay = dailyBalances.length > 1 ? ((dailyBalances.length - 2) % 3) : -1;
-    let dailyChange = 0;
-    if (todayCycleDay === 0) dailyChange = 25;
-    else if (todayCycleDay === 2) dailyChange = -10;
+    const todayEntry = dailyBalances[dailyBalances.length - 1];
+    const dailyChange = todayEntry ? todayEntry.pct : 0;
 
     return { currentValue: currentBalance, growthPercentage, chartData, timelineEvents, dailyChange };
   }, [demoInvestment]);
