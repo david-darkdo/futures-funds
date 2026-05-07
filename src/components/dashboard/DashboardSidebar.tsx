@@ -179,12 +179,13 @@ export function DashboardSidebar({
                     >
                       <link.icon className="w-5 h-5" />
                       <span className="font-medium">{translateLink(t, link.name)}</span>
+                    </Link>
                   ) : (
                     <div
                       className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed"
                     >
                       <link.icon className="w-5 h-5" />
-                      <span className="font-medium">{link.name}</span>
+                      <span className="font-medium">{translateLink(t, link.name)}</span>
                       <LockKeyhole className="w-4 h-4 ml-auto" />
                     </div>
                   )}
