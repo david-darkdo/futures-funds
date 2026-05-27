@@ -45,6 +45,7 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
               <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
