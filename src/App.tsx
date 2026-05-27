@@ -10,7 +10,9 @@ import { PublicRoute } from "@/components/auth/PublicRoute";
 import { DashboardRoute } from "@/components/auth/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { BottomNav } from "@/components/layout/BottomNav";
 import Index from "./pages/Index";
+import Plans from "./pages/Plans";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
@@ -43,6 +45,7 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
               <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
@@ -66,6 +69,7 @@ const App = () => (
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <BottomNav />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

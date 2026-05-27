@@ -57,5 +57,11 @@
     "cancel": "Cancel",
     "start": "Start Demo",
     "creating": "Creating..."
+  },
+  "bottomNav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "plans": "Plans",
+    "profile": "Profile"
   }
 }

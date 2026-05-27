@@ -261,3 +261,8 @@
   50%, 70% { stroke-dashoffset: 0; opacity: 1; }
   90%, 100% { stroke-dashoffset: 0; opacity: 0; }
 }
+
+/* Reserve space for global bottom nav so content isn't clipped */
+body {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
