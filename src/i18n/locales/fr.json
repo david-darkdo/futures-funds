@@ -9,7 +9,9 @@
     "getStarted": "Commencer",
     "language": "Langue"
   },
-  "hero": { "viewPlans": "Voir les forfaits" },
+  "hero": {
+    "viewPlans": "Voir les forfaits"
+  },
   "dashboard": {
     "homepage": "Accueil",
     "getStarted": "Commencer",
@@ -55,5 +57,11 @@
     "cancel": "Annuler",
     "start": "Démarrer la démo",
     "creating": "Création..."
+  },
+  "bottomNav": {
+    "home": "Accueil",
+    "dashboard": "Tableau",
+    "plans": "Forfaits",
+    "profile": "Profil"
   }
 }

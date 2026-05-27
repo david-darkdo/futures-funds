@@ -9,7 +9,9 @@
     "getStarted": "Comenzar",
     "language": "Idioma"
   },
-  "hero": { "viewPlans": "Ver planes" },
+  "hero": {
+    "viewPlans": "Ver planes"
+  },
   "dashboard": {
     "homepage": "Inicio",
     "getStarted": "Comenzar",
@@ -55,5 +57,11 @@
     "cancel": "Cancelar",
     "start": "Iniciar demo",
     "creating": "Creando..."
+  },
+  "bottomNav": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "plans": "Planes",
+    "profile": "Perfil"
   }
 }
