@@ -1,18 +1,57 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { ArrowDownRight, ChevronRight, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import { useTransactions, Transaction } from "@/hooks/useTransactions";
+import {
+  ArrowDownRight,
+  ChevronRight,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  Coins,
+  Layers,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from "lucide-react";
+import { useTransactions, Transaction, TransactionType } from "@/hooks/useTransactions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-const iconFor = (t: Transaction["type"]) =>
-  t === "deposit" ? Wallet : t === "growth" ? TrendingUp : t === "drawdown" ? TrendingDown : ArrowDownRight;
+const POSITIVE = new Set<TransactionType>([
+  "deposit",
+  "deposit_approved",
+  "growth",
+  "profit_added",
+  "investment_completed",
+  "withdrawal_rejected",
+]);
+
+const ICON: Record<string, any> = {
+  deposit: Wallet,
+  deposit_submitted: Clock,
+  deposit_approved: Wallet,
+  deposit_rejected: XCircle,
+  growth: TrendingUp,
+  drawdown: TrendingDown,
+  withdrawal: ArrowDownRight,
+  withdrawal_requested: Clock,
+  withdrawal_approved: CheckCircle,
+  withdrawal_rejected: XCircle,
+  investment_started: Layers,
+  investment_completed: CheckCircle,
+  profit_added: Coins,
+};
+
+export function txLabel(t: (k: string) => string, type: TransactionType) {
+  const key = `txType.${type}`;
+  const translated = t(key);
+  if (translated !== key) return translated;
+  return type.replace(/_/g, " ");
+}
 
 export function RecentTransactions({ limit = 4 }: { limit?: number }) {
   const { t } = useTranslation();
   const { transactions, loading } = useTransactions();
-
   const recent = transactions.slice(0, limit);
 
   return (
@@ -30,15 +69,12 @@ export function RecentTransactions({ limit = 4 }: { limit?: number }) {
             {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
           </div>
         ) : recent.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">
-            {t("recentTx.empty")}
-          </div>
+          <div className="p-8 text-center text-sm text-muted-foreground">{t("recentTx.empty")}</div>
         ) : (
           <ul className="divide-y divide-border">
-            {recent.map((tx) => {
-              const Icon = iconFor(tx.type);
-              const isPositive = tx.type === "deposit" || tx.type === "growth";
-              const labelKey = `txType.${tx.type}`;
+            {recent.map((tx: Transaction) => {
+              const Icon = ICON[tx.type] || Wallet;
+              const isPositive = POSITIVE.has(tx.type);
               return (
                 <li key={tx.id} className="flex items-center gap-3 p-3 sm:p-4">
                   <div className={cn(
@@ -48,9 +84,9 @@ export function RecentTransactions({ limit = 4 }: { limit?: number }) {
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{t(labelKey)}</p>
+                    <p className="text-sm font-medium truncate">{txLabel(t, tx.type)}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {format(new Date(tx.created_at), "MMM d · h:mm a")}
+                      {tx.description || format(new Date(tx.created_at), "MMM d · h:mm a")}
                     </p>
                   </div>
                   <p className={cn(

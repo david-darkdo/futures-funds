@@ -1,27 +1,21 @@
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, Plus, Layers } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface QuickActionsProps {
   onDeposit: () => void;
+  onInvest?: () => void;
   onWithdraw: () => void;
+  canInvest?: boolean;
   canWithdraw?: boolean;
 }
 
-export function QuickActions({ onDeposit, onWithdraw, canWithdraw = true }: QuickActionsProps) {
+export function QuickActions({ onDeposit, onInvest, onWithdraw, canInvest = true, canWithdraw = true }: QuickActionsProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const actions = [
-    { label: t("quickActions.deposit"), icon: Plus, onClick: onDeposit, accent: "gold" as const },
-    { label: t("quickActions.invest"), icon: Layers, onClick: () => navigate("/plans"), accent: "gold" as const },
-    {
-      label: t("quickActions.withdraw"),
-      icon: ArrowDownToLine,
-      onClick: onWithdraw,
-      accent: "muted" as const,
-      disabled: !canWithdraw,
-    },
+    { label: t("quickActions.deposit"), icon: Plus, onClick: onDeposit, disabled: false },
+    { label: t("quickActions.invest"), icon: Layers, onClick: onInvest, disabled: !canInvest },
+    { label: t("quickActions.withdraw"), icon: ArrowDownToLine, onClick: onWithdraw, disabled: !canWithdraw },
   ];
 
   return (

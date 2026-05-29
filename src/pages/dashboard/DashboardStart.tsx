@@ -8,13 +8,19 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PlansPreview } from "@/components/dashboard/PlansPreview";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
+import { InvestDialog } from "@/components/payments/InvestDialog";
 import { CreateDemoDialog } from "@/components/dashboard/CreateDemoDialog";
+import { useBalances } from "@/hooks/useBalances";
+import { useMaturityTicker } from "@/hooks/useMaturityTicker";
 
 export default function DashboardStart() {
   const { t } = useTranslation();
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
-  const [demoDialogOpen, setDemoDialogOpen] = useState(false);
+  const { mainBalance, profitBalance, investedAmount, investingFrozen, refetch } = useBalances();
+  useMaturityTicker(refetch);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [investOpen, setInvestOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const features = [
     { icon: TrendingUp, key: "dailyGrowth" },
@@ -25,11 +31,18 @@ export default function DashboardStart() {
 
   return (
     <div className="flex-1 p-4 lg:p-6 space-y-6 max-w-5xl mx-auto w-full">
-      <HeroBalanceCard mainBalance={0} invested={0} profit={0} status="inactive" />
+      <HeroBalanceCard
+        mainBalance={mainBalance}
+        invested={investedAmount}
+        profit={profitBalance}
+        status={mainBalance > 0 ? "active" : "inactive"}
+      />
       <QuickActions
-        onDeposit={() => setPaymentDialogOpen(true)}
-        onWithdraw={() => setWithdrawDialogOpen(true)}
-        canWithdraw={false}
+        onDeposit={() => setDepositOpen(true)}
+        onInvest={() => setInvestOpen(true)}
+        onWithdraw={() => setWithdrawOpen(true)}
+        canInvest={!investingFrozen && mainBalance > 0}
+        canWithdraw={mainBalance + profitBalance > 0}
       />
 
       <div className="text-center pt-4">
@@ -38,14 +51,14 @@ export default function DashboardStart() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <Button variant="gold" size="lg" onClick={() => setPaymentDialogOpen(true)} className="gap-2 w-full sm:w-auto">
+        <Button variant="gold" size="lg" onClick={() => setDepositOpen(true)} className="gap-2 w-full sm:w-auto">
           <Sparkles className="w-5 h-5" />
-          {t("dashboard.startNewInvestment")}
+          {t("quickActions.deposit")}
         </Button>
         <Button
           variant="outline"
           size="lg"
-          onClick={() => setDemoDialogOpen(true)}
+          onClick={() => setDemoOpen(true)}
           className="gap-2 w-full sm:w-auto border-gold/30 text-gold hover:bg-gold/10 hover:text-gold"
         >
           <FlaskConical className="w-5 h-5" />
@@ -59,21 +72,18 @@ export default function DashboardStart() {
         {features.map((f) => (
           <Card key={f.key} className="bg-card/50 border-border/50">
             <CardHeader className="flex flex-row items-center gap-3 pb-2">
-              <div className="p-2 rounded-lg bg-gold/10">
-                <f.icon className="w-5 h-5 text-gold" />
-              </div>
+              <div className="p-2 rounded-lg bg-gold/10"><f.icon className="w-5 h-5 text-gold" /></div>
               <CardTitle className="text-base">{t(`dashboard.features.${f.key}`)}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">{t(`dashboard.features.${f.key}Desc`)}</p>
-            </CardContent>
+            <CardContent><p className="text-muted-foreground text-sm">{t(`dashboard.features.${f.key}Desc`)}</p></CardContent>
           </Card>
         ))}
       </div>
 
-      <PaymentUploadDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} />
-      <WithdrawalRequestDialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen} availableBalance={0} />
-      <CreateDemoDialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen} />
+      <PaymentUploadDialog open={depositOpen} onOpenChange={setDepositOpen} onSuccess={refetch} />
+      <InvestDialog open={investOpen} onOpenChange={setInvestOpen} onSuccess={refetch} />
+      <WithdrawalRequestDialog open={withdrawOpen} onOpenChange={setWithdrawOpen} availableBalance={mainBalance + profitBalance} onSuccess={refetch} />
+      <CreateDemoDialog open={demoOpen} onOpenChange={setDemoOpen} />
     </div>
   );
 }

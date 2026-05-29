@@ -2,11 +2,27 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+export type TransactionType =
+  | "deposit"
+  | "growth"
+  | "drawdown"
+  | "withdrawal"
+  | "deposit_submitted"
+  | "deposit_approved"
+  | "deposit_rejected"
+  | "investment_started"
+  | "investment_completed"
+  | "profit_added"
+  | "withdrawal_requested"
+  | "withdrawal_approved"
+  | "withdrawal_rejected"
+  | string;
+
 export interface Transaction {
   id: string;
   user_id: string;
   investment_id: string | null;
-  type: "deposit" | "growth" | "drawdown" | "withdrawal";
+  type: TransactionType;
   amount: number;
   percentage_change: number | null;
   balance_after: number;
