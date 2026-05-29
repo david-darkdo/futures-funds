@@ -1,53 +1,29 @@
-import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTransactions, calculatePortfolioMetrics, Transaction } from "@/hooks/useTransactions";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useBalances } from "@/hooks/useBalances";
+import { txLabel } from "@/components/dashboard/RecentTransactions";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-const typeConfig: Record<Transaction["type"], { 
-  icon: typeof ArrowUpRight; 
-  label: string; 
-  colorClass: string;
-  bgClass: string;
-}> = {
-  deposit: {
-    icon: Wallet,
-    label: "Deposit",
-    colorClass: "text-teal",
-    bgClass: "bg-teal/10",
-  },
-  growth: {
-    icon: TrendingUp,
-    label: "Performance Update",
-    colorClass: "text-teal",
-    bgClass: "bg-teal/10",
-  },
-  drawdown: {
-    icon: TrendingDown,
-    label: "Performance Update",
-    colorClass: "text-destructive",
-    bgClass: "bg-destructive/10",
-  },
-  withdrawal: {
-    icon: ArrowDownRight,
-    label: "Withdrawal",
-    colorClass: "text-muted-foreground",
-    bgClass: "bg-muted",
-  },
-};
+const POSITIVE = new Set<string>([
+  "deposit", "deposit_approved", "growth", "profit_added",
+  "investment_completed", "withdrawal_rejected",
+]);
 
 export default function DashboardTransactions() {
+  const { t } = useTranslation();
   const { transactions, loading } = useTransactions();
-  const metrics = calculatePortfolioMetrics(transactions);
+  const { mainBalance, profitBalance, investedAmount } = useBalances();
+  const totalProfit = profitBalance;
 
   if (loading) {
     return (
       <div className="flex-1 p-4 lg:p-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24" />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
         </div>
         <Skeleton className="h-96" />
       </div>
@@ -56,61 +32,34 @@ export default function DashboardTransactions() {
 
   return (
     <div className="flex-1 p-4 lg:p-8 space-y-6">
-      {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card/50 border-border/50">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Initial Capital</p>
-            <p className="text-2xl font-bold">
-              ${metrics.initialCapital.toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 border-border/50">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Current Balance</p>
-            <p className="text-2xl font-bold">
-              ${metrics.currentBalance.toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 border-border/50">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Total Growth</p>
-            <p className={cn(
-              "text-2xl font-bold",
-              metrics.totalGrowthPercent >= 0 ? "text-teal" : "text-destructive"
-            )}>
-              {metrics.totalGrowthPercent >= 0 ? "+" : ""}
-              {metrics.totalGrowthPercent.toFixed(2)}%
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 border-border/50">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Total Profit</p>
-            <p className={cn(
-              "text-2xl font-bold",
-              metrics.totalProfit >= 0 ? "text-teal" : "text-destructive"
-            )}>
-              {metrics.totalProfit >= 0 ? "+$" : "-$"}
-              {Math.abs(metrics.totalProfit).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">{t("hero.mainBalance")}</p>
+          <p className="text-2xl font-bold">${mainBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">{t("hero.invested")}</p>
+          <p className="text-2xl font-bold">${investedAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">{t("hero.profit")}</p>
+          <p className={cn("text-2xl font-bold", totalProfit >= 0 ? "text-teal" : "text-destructive")}>
+            ${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">{t("withdraw.available")}</p>
+          <p className="text-2xl font-bold text-gold">${(mainBalance + profitBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+        </CardContent></Card>
       </div>
 
-      {/* Transaction History Table */}
-      <Card className="bg-card/50 border-border/50">
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-        </CardHeader>
+      <Card>
+        <CardHeader><CardTitle>{t("dashboard.transactionHistory")}</CardTitle></CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Wallet className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No transactions yet</p>
-              <p className="text-sm mt-1">Your transaction history will appear here</p>
+              <p>{t("recentTx.empty")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -125,53 +74,22 @@ export default function DashboardTransactions() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((transaction) => {
-                    const config = typeConfig[transaction.type];
-                    const Icon = config.icon;
-                    const isPositive = transaction.type === "deposit" || transaction.type === "growth";
-                    
+                  {transactions.map((tx) => {
+                    const isPositive = POSITIVE.has(tx.type);
                     return (
-                      <tr key={transaction.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                        <td className="py-4 px-4">
-                          <span className="text-sm">
-                            {format(new Date(transaction.created_at), "MMM d, yyyy")}
-                          </span>
-                          <span className="text-xs text-muted-foreground block">
-                            {format(new Date(transaction.created_at), "h:mm a")}
-                          </span>
+                      <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30">
+                        <td className="py-4 px-4 text-sm">
+                          {format(new Date(tx.created_at), "MMM d, yyyy")}
+                          <span className="text-xs text-muted-foreground block">{format(new Date(tx.created_at), "h:mm a")}</span>
                         </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-2">
-                            <div className={cn("p-2 rounded-full", config.bgClass)}>
-                              <Icon className={cn("w-4 h-4", config.colorClass)} />
-                            </div>
-                            <span className="font-medium">{config.label}</span>
-                          </div>
+                        <td className="py-4 px-4 font-medium">{txLabel(t, tx.type)}</td>
+                        <td className={cn("py-4 px-4 text-right font-semibold", isPositive ? "text-teal" : "text-destructive")}>
+                          {isPositive ? "+" : "-"}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
-                        <td className="py-4 px-4 text-right">
-                          <span className={cn(
-                            "font-semibold",
-                            isPositive ? "text-teal" : "text-destructive"
-                          )}>
-                            {isPositive ? "+" : "-"}${Math.abs(transaction.amount).toLocaleString()}
-                          </span>
-                          {transaction.percentage_change !== null && (
-                            <span className="text-xs text-muted-foreground block">
-                              {transaction.type === "growth" ? "+" : "-"}
-                              {transaction.percentage_change}%
-                            </span>
-                          )}
+                        <td className="py-4 px-4 text-right font-medium">
+                          ${tx.balance_after.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
-                        <td className="py-4 px-4 text-right">
-                          <span className="font-medium">
-                            ${transaction.balance_after.toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 hidden md:table-cell">
-                          <span className="text-sm text-muted-foreground">
-                            {transaction.description || "—"}
-                          </span>
-                        </td>
+                        <td className="py-4 px-4 hidden md:table-cell text-sm text-muted-foreground">{tx.description || "—"}</td>
                       </tr>
                     );
                   })}

@@ -1,19 +1,19 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlaskConical, Trash2, Layers } from "lucide-react";
+import { FlaskConical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useMultiInvestment, generateChartDataFromMultiLogs } from "@/hooks/useMultiInvestment";
-import { useTransactions, generateChartFromTransactions } from "@/hooks/useTransactions";
+import { useBalances } from "@/hooks/useBalances";
+import { useTransactions } from "@/hooks/useTransactions";
 import { useDemoInvestment } from "@/hooks/useDemoInvestment";
+import { useMaturityTicker } from "@/hooks/useMaturityTicker";
 import { HeroBalanceCard } from "@/components/dashboard/HeroBalanceCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PlansPreview } from "@/components/dashboard/PlansPreview";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
-import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
-import { PendingInvestmentsCard } from "@/components/dashboard/PendingInvestmentsCard";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
+import { InvestDialog } from "@/components/payments/InvestDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 
@@ -21,17 +21,13 @@ function DemoStrip() {
   const { t } = useTranslation();
   const { demoInvestment, currentValue, deleteDemo, loading } = useDemoInvestment();
   const [deleting, setDeleting] = useState(false);
-  const [openInvest, setOpenInvest] = useState(false);
-
   if (loading || !demoInvestment) return null;
   const profit = currentValue - demoInvestment.initial_amount;
-
   return (
     <Card className="border-gold/20 bg-gold/5">
       <CardContent className="p-4 flex items-center gap-3">
         <Badge variant="outline" className="border-gold/40 text-gold gap-1.5">
-          <FlaskConical className="w-3 h-3" />
-          Demo
+          <FlaskConical className="w-3 h-3" /> Demo
         </Badge>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">
@@ -42,9 +38,6 @@ function DemoStrip() {
           </p>
           <p className="text-xs text-muted-foreground truncate">{demoInvestment.bundle?.name ?? "Demo"}</p>
         </div>
-        <Button size="sm" variant="gold" onClick={() => setOpenInvest(true)}>
-          {t("quickActions.invest")}
-        </Button>
         <Button
           size="icon"
           variant="ghost"
@@ -59,89 +52,49 @@ function DemoStrip() {
         >
           <Trash2 className="w-4 h-4" />
         </Button>
-        <PaymentUploadDialog open={openInvest} onOpenChange={setOpenInvest} />
       </CardContent>
     </Card>
   );
 }
 
 export default function DashboardPortfolio() {
-  const { t } = useTranslation();
-  const {
-    activeInvestments,
-    pendingPayments,
-    portfolio,
-    growthLogs,
-    loading,
-    hasActiveInvestment,
-    hasPendingPayment,
-  } = useMultiInvestment();
-  const { transactions } = useTransactions();
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
+  const { mainBalance, profitBalance, investedAmount, runningInvestments, investingFrozen, loading, refetch } = useBalances();
+  useTransactions(); // realtime subscription
+  useMaturityTicker(refetch);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [investOpen, setInvestOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
-  const chartData = useMemo(() => {
-    if (transactions.length > 0) return generateChartFromTransactions(transactions);
-    if (activeInvestments.length === 0) return [];
-    const oldest = activeInvestments.reduce((o, inv) =>
-      new Date(inv.created_at) < new Date(o.created_at) ? inv : o
-    );
-    return generateChartDataFromMultiLogs(portfolio.totalInitialAmount, oldest.created_at, growthLogs);
-  }, [transactions, activeInvestments, portfolio.totalInitialAmount, growthLogs]);
-
-  const profit = portfolio.totalCurrentValue - portfolio.totalInitialAmount;
+  const available = mainBalance + profitBalance;
+  const hasActive = runningInvestments.length > 0;
 
   return (
     <div className="flex-1 p-4 lg:p-6 space-y-6 max-w-5xl mx-auto w-full">
-      {/* Hero balance */}
       <HeroBalanceCard
-        mainBalance={portfolio.totalCurrentValue}
-        invested={portfolio.totalInitialAmount}
-        profit={profit}
+        mainBalance={mainBalance}
+        invested={investedAmount}
+        profit={profitBalance}
         loading={loading}
-        status={hasActiveInvestment ? "active" : hasPendingPayment ? "pending" : "inactive"}
+        status={hasActive ? "active" : mainBalance > 0 ? "active" : "inactive"}
       />
 
-      {/* Quick actions */}
       <QuickActions
-        onDeposit={() => setPaymentDialogOpen(true)}
-        onWithdraw={() => setWithdrawalDialogOpen(true)}
-        canWithdraw={hasActiveInvestment}
+        onDeposit={() => setDepositOpen(true)}
+        onInvest={() => setInvestOpen(true)}
+        onWithdraw={() => setWithdrawOpen(true)}
+        canInvest={!investingFrozen && mainBalance > 0}
+        canWithdraw={available > 0}
       />
 
-      {/* Multi-bundle badge */}
-      {portfolio.activeInvestmentsCount > 1 && (
-        <Badge variant="outline" className="border-gold/30 text-gold gap-1">
-          <Layers className="w-3 h-3" />
-          {portfolio.activeInvestmentsCount} {t("nav.plans")}
-        </Badge>
-      )}
-
-      {/* Demo strip if present */}
       <DemoStrip />
 
-      {/* Pending payments */}
-      {hasPendingPayment && <PendingInvestmentsCard pendingPayments={pendingPayments} />}
-
-      {/* Performance chart */}
-      {hasActiveInvestment && chartData.length > 1 && (
-        <div className="rounded-2xl bg-card border border-border p-4 sm:p-6">
-          <PerformanceChart data={chartData} />
-        </div>
-      )}
-
-      {/* Plans preview */}
       <PlansPreview />
 
-      {/* Recent transactions */}
       <RecentTransactions />
 
-      <PaymentUploadDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} />
-      <WithdrawalRequestDialog
-        open={withdrawalDialogOpen}
-        onOpenChange={setWithdrawalDialogOpen}
-        availableBalance={portfolio.totalCurrentValue}
-      />
+      <PaymentUploadDialog open={depositOpen} onOpenChange={setDepositOpen} onSuccess={refetch} />
+      <InvestDialog open={investOpen} onOpenChange={setInvestOpen} onSuccess={refetch} />
+      <WithdrawalRequestDialog open={withdrawOpen} onOpenChange={setWithdrawOpen} availableBalance={available} onSuccess={refetch} />
     </div>
   );
 }

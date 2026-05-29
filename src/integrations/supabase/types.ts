@@ -166,7 +166,8 @@ export type Database = {
         Row: {
           admin_id: string | null
           admin_note: string | null
-          bundle_id: string
+          amount_usd: number | null
+          bundle_id: string | null
           created_at: string | null
           crypto_amount: number | null
           crypto_currency: string | null
@@ -180,7 +181,8 @@ export type Database = {
         Insert: {
           admin_id?: string | null
           admin_note?: string | null
-          bundle_id: string
+          amount_usd?: number | null
+          bundle_id?: string | null
           created_at?: string | null
           crypto_amount?: number | null
           crypto_currency?: string | null
@@ -194,7 +196,8 @@ export type Database = {
         Update: {
           admin_id?: string | null
           admin_note?: string | null
-          bundle_id?: string
+          amount_usd?: number | null
+          bundle_id?: string | null
           created_at?: string | null
           crypto_amount?: number | null
           crypto_currency?: string | null
@@ -236,8 +239,11 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          investing_frozen: boolean
           language: string
           last_login_at: string | null
+          main_balance: number
+          profit_balance: number
           status: string | null
           theme: string
           updated_at: string | null
@@ -248,8 +254,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          investing_frozen?: boolean
           language?: string
           last_login_at?: string | null
+          main_balance?: number
+          profit_balance?: number
           status?: string | null
           theme?: string
           updated_at?: string | null
@@ -260,8 +269,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          investing_frozen?: boolean
           language?: string
           last_login_at?: string | null
+          main_balance?: number
+          profit_balance?: number
           status?: string | null
           theme?: string
           updated_at?: string | null
@@ -277,7 +289,7 @@ export type Database = {
           id: string
           investment_id: string | null
           percentage_change: number | null
-          type: Database["public"]["Enums"]["transaction_type"]
+          type: string
           user_id: string
         }
         Insert: {
@@ -288,7 +300,7 @@ export type Database = {
           id?: string
           investment_id?: string | null
           percentage_change?: number | null
-          type: Database["public"]["Enums"]["transaction_type"]
+          type: string
           user_id: string
         }
         Update: {
@@ -299,7 +311,7 @@ export type Database = {
           id?: string
           investment_id?: string | null
           percentage_change?: number | null
-          type?: Database["public"]["Enums"]["transaction_type"]
+          type?: string
           user_id?: string
         }
         Relationships: [
@@ -316,12 +328,14 @@ export type Database = {
         Row: {
           admin_note: string | null
           bundle_id: string
+          completed_at: string | null
           created_at: string
           current_value: number
           growth_percentage: number
           id: string
           initial_amount: number
           last_updated_by: string | null
+          matures_at: string | null
           payment_id: string | null
           state: Database["public"]["Enums"]["investment_state"]
           updated_at: string
@@ -330,12 +344,14 @@ export type Database = {
         Insert: {
           admin_note?: string | null
           bundle_id: string
+          completed_at?: string | null
           created_at?: string
           current_value?: number
           growth_percentage?: number
           id?: string
           initial_amount?: number
           last_updated_by?: string | null
+          matures_at?: string | null
           payment_id?: string | null
           state?: Database["public"]["Enums"]["investment_state"]
           updated_at?: string
@@ -344,12 +360,14 @@ export type Database = {
         Update: {
           admin_note?: string | null
           bundle_id?: string
+          completed_at?: string | null
           created_at?: string
           current_value?: number
           growth_percentage?: number
           id?: string
           initial_amount?: number
           last_updated_by?: string | null
+          matures_at?: string | null
           payment_id?: string | null
           state?: Database["public"]["Enums"]["investment_state"]
           updated_at?: string
@@ -458,12 +476,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_matured_investments: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      invest_from_balance: {
+        Args: { _amount: number; _bundle_id: string }
+        Returns: string
       }
       mask_email: { Args: { email: string }; Returns: string }
     }
