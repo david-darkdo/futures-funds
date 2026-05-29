@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,15 +22,7 @@ import { Copy, CheckCircle, Upload, ArrowRight, ImageIcon, X } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { validateOptionalNumber, validateTransactionId, VALIDATION_LIMITS } from "@/lib/validation";
-
-interface Bundle {
-  id: string;
-  name: string;
-  price_usd: number;
-  description: string | null;
-  daily_growth_rate: number | null;
-}
+import { validateNumber, validateOptionalNumber, validateTransactionId, VALIDATION_LIMITS } from "@/lib/validation";
 
 interface Wallet {
   id: string;
@@ -43,142 +35,99 @@ interface Wallet {
 interface PaymentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  preselectedBundleId?: string;
   onSuccess?: () => void;
 }
 
-export function PaymentUploadDialog({
-  open,
-  onOpenChange,
-  preselectedBundleId,
-  onSuccess,
-}: PaymentUploadDialogProps) {
+/**
+ * Deposit dialog — collects USD amount, shows company wallet,
+ * lets user upload proof and submit for admin approval.
+ * Approval credits main_balance via DB trigger; no bundle is tied to a deposit.
+ */
+export function PaymentUploadDialog({ open, onOpenChange, onSuccess }: PaymentUploadDialogProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [bundles, setBundles] = useState<Bundle[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [selectedBundle, setSelectedBundle] = useState<string>(preselectedBundleId || "");
   const [selectedWallet, setSelectedWallet] = useState<string>("");
+  const [amountUsd, setAmountUsd] = useState("");
   const [cryptoAmount, setCryptoAmount] = useState("");
   const [txid, setTxid] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
-  const [step, setStep] = useState<"select" | "pay" | "confirm">("select");
+  const [step, setStep] = useState<"amount" | "pay" | "confirm">("amount");
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      fetchData();
-      setStep("select");
-      setCryptoAmount("");
-      setTxid("");
-      setProofFile(null);
-      setProofPreview(null);
-      if (preselectedBundleId) {
-        setSelectedBundle(preselectedBundleId);
-      }
-    }
-  }, [open, preselectedBundleId]);
+    if (!open) return;
+    setStep("amount");
+    setAmountUsd("");
+    setCryptoAmount("");
+    setTxid("");
+    setProofFile(null);
+    setProofPreview(null);
+    supabase
+      .from("wallets")
+      .select("*")
+      .eq("active", true)
+      .then(({ data }) => {
+        setWallets(data || []);
+        if (data && data[0]) setSelectedWallet(data[0].id);
+      });
+  }, [open]);
 
-  const fetchData = async () => {
-    const [bundlesRes, walletsRes] = await Promise.all([
-      supabase.from("bundles").select("*").eq("active", true).order("price_usd"),
-      supabase.from("wallets").select("*").eq("active", true),
-    ]);
-
-    setBundles(bundlesRes.data || []);
-    setWallets(walletsRes.data || []);
-
-    if (walletsRes.data && walletsRes.data.length > 0) {
-      setSelectedWallet(walletsRes.data[0].id);
-    }
-  };
-
-  const selectedBundleData = bundles.find((b) => b.id === selectedBundle);
   const selectedWalletData = wallets.find((w) => w.id === selectedWallet);
+  const parsedAmount = Number(amountUsd);
 
   const copyAddress = () => {
     if (selectedWalletData) {
       navigator.clipboard.writeText(selectedWalletData.address);
       setCopied(true);
-      toast.success("Address copied to clipboard");
+      toast.success(t("payment.addressCopied"));
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
-        return;
-      }
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be smaller than 5MB");
-        return;
-      }
-      setProofFile(file);
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setProofPreview(previewUrl);
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(t("payment.selectImage"));
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("payment.imageTooLarge"));
+      return;
+    }
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
   };
 
   const removeProofFile = () => {
     setProofFile(null);
-    if (proofPreview) {
-      URL.revokeObjectURL(proofPreview);
-      setProofPreview(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (proofPreview) URL.revokeObjectURL(proofPreview);
+    setProofPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const uploadProofImage = async (): Promise<string | null> => {
     if (!proofFile || !user) return null;
-
     setUploading(true);
     try {
       const timestamp = Date.now();
       const fileExt = proofFile.name.split(".").pop() || "png";
       const filePath = `${user.id}/${timestamp}.${fileExt}`;
-
       const { error: uploadError } = await supabase.storage
         .from("payment-proofs")
-        .upload(filePath, proofFile, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
-      }
-
-      // Get the signed URL for the uploaded file (7 days expiration for payment verification)
-      const { data: signedData, error: signError } = await supabase.storage
+        .upload(filePath, proofFile, { cacheControl: "3600", upsert: false });
+      if (uploadError) throw uploadError;
+      const { data: signedData } = await supabase.storage
         .from("payment-proofs")
-        .createSignedUrl(filePath, 60 * 60 * 24 * 7); // 7 days
-
-      if (signError) {
-        console.error("Signed URL error:", signError);
-        // Fallback to public URL if signed fails
-        const { data: publicData } = supabase.storage
-          .from("payment-proofs")
-          .getPublicUrl(filePath);
-        return publicData.publicUrl;
-      }
-
-      return signedData.signedUrl;
-    } catch (error) {
-      console.error("Failed to upload proof:", error);
-      toast.error("Failed to upload payment proof");
+        .createSignedUrl(filePath, 60 * 60 * 24 * 7);
+      return signedData?.signedUrl || null;
+    } catch (e) {
+      toast.error(t("payment.uploadFailed"));
       return null;
     } finally {
       setUploading(false);
@@ -186,67 +135,69 @@ export function PaymentUploadDialog({
   };
 
   const handleSubmit = async () => {
-    if (!user || !selectedBundle || !selectedWallet) {
-      toast.error("Please complete all fields");
+    if (!user || !selectedWallet) {
+      toast.error(t("payment.completeAll"));
+      return;
+    }
+    const amountValidation = validateNumber(amountUsd, {
+      fieldName: "Amount",
+      min: 1,
+      max: 1_000_000,
+    });
+    if (!amountValidation.isValid) {
+      toast.error(amountValidation.error || t("payment.completeAll"));
       return;
     }
 
-    // Validate crypto amount if provided
     let validatedCryptoAmount: number | null = null;
     if (cryptoAmount.trim()) {
-      const validation = validateOptionalNumber(cryptoAmount, {
+      const v = validateOptionalNumber(cryptoAmount, {
         fieldName: "Crypto amount",
         min: VALIDATION_LIMITS.CRYPTO_AMOUNT.MIN,
         max: VALIDATION_LIMITS.CRYPTO_AMOUNT.MAX,
       });
-      
-      if (!validation.isValid) {
-        toast.error(validation.error || "Invalid crypto amount");
+      if (!v.isValid) {
+        toast.error(v.error || "Invalid crypto amount");
         return;
       }
-      validatedCryptoAmount = validation.value;
+      validatedCryptoAmount = v.value;
     }
 
-    // Validate txid if provided
     let validatedTxid: string | null = null;
     if (txid.trim()) {
-      const txidValidation = validateTransactionId(txid, selectedWalletData?.network);
-      if (!txidValidation.isValid) {
-        toast.error(txidValidation.error || "Invalid transaction ID");
+      const t2 = validateTransactionId(txid, selectedWalletData?.network);
+      if (!t2.isValid) {
+        toast.error(t2.error || "Invalid transaction ID");
         return;
       }
-      validatedTxid = txidValidation.sanitizedValue || null;
+      validatedTxid = t2.sanitizedValue || null;
     }
 
     setSubmitting(true);
-
-    // Upload proof image if provided
     let proofUrl: string | null = null;
-    if (proofFile) {
-      proofUrl = await uploadProofImage();
-    }
+    if (proofFile) proofUrl = await uploadProofImage();
 
     const { error } = await supabase.from("payments").insert({
       user_id: user.id,
-      bundle_id: selectedBundle,
+      bundle_id: null,
+      amount_usd: amountValidation.value,
       crypto_amount: validatedCryptoAmount,
       crypto_currency: selectedWalletData?.currency || null,
       txid: validatedTxid,
       proof_url: proofUrl,
       status: "pending",
-    });
+    } as any);
 
     if (error) {
-      toast.error("Failed to submit payment. Please try again.");
+      toast.error(t("payment.submitFailed"));
       setSubmitting(false);
       return;
     }
 
-    toast.success("Payment submitted for review!");
+    toast.success(t("payment.submitted"));
     setSubmitting(false);
     onOpenChange(false);
     onSuccess?.();
-    navigate("/dashboard");
   };
 
   return (
@@ -254,67 +205,40 @@ export function PaymentUploadDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader className="shrink-0">
           <DialogTitle>
-            {step === "select" && "Select Investment Bundle"}
-            {step === "pay" && "Make Payment"}
-            {step === "confirm" && "Confirm Payment"}
+            {step === "amount" && t("payment.depositTitle")}
+            {step === "pay" && t("payment.makePayment")}
+            {step === "confirm" && t("payment.confirmPayment")}
           </DialogTitle>
           <DialogDescription>
-            {step === "select" && "Choose the bundle you'd like to invest in"}
-            {step === "pay" && "Send crypto to the address below"}
-            {step === "confirm" && "Upload proof and enter payment details"}
+            {step === "amount" && t("payment.depositDesc")}
+            {step === "pay" && t("payment.makePaymentDesc")}
+            {step === "confirm" && t("payment.confirmPaymentDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-          {step === "select" && (
+          {step === "amount" && (
             <div className="space-y-4 pb-1">
               <div className="space-y-2">
-                <Label>Investment Bundle</Label>
-                <Select value={selectedBundle} onValueChange={setSelectedBundle}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a bundle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bundles.map((bundle) => (
-                      <SelectItem key={bundle.id} value={bundle.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{bundle.name}</span>
-                          <span className="text-gold ml-2">
-                            ${bundle.price_usd.toLocaleString()}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="amountUsd">{t("payment.depositAmount")}</Label>
+                <Input
+                  id="amountUsd"
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={1}
+                  placeholder="100"
+                  value={amountUsd}
+                  onChange={(e) => setAmountUsd(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">{t("payment.depositAmountHint")}</p>
               </div>
 
-              {selectedBundleData && (
-                <div className="p-4 rounded-lg bg-secondary">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium">{selectedBundleData.name}</span>
-                    <span className="text-gold font-bold">
-                      ${selectedBundleData.price_usd.toLocaleString()}
-                    </span>
-                  </div>
-                  {selectedBundleData.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {selectedBundleData.description}
-                    </p>
-                  )}
-                  {selectedBundleData.daily_growth_rate && (
-                    <p className="text-sm text-teal mt-1">
-                      Target: {selectedBundleData.daily_growth_rate}% daily growth
-                    </p>
-                  )}
-                </div>
-              )}
-
               <div className="space-y-2">
-                <Label>Payment Method</Label>
+                <Label>{t("payment.paymentMethod")}</Label>
                 <Select value={selectedWallet} onValueChange={setSelectedWallet}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select payment method" />
+                    <SelectValue placeholder={t("payment.selectMethod")} />
                   </SelectTrigger>
                   <SelectContent>
                     {wallets.map((wallet) => (
@@ -328,57 +252,42 @@ export function PaymentUploadDialog({
               </div>
 
               {wallets.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No payment methods available. Please contact support.
-                </p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t("payment.noMethods")}</p>
               )}
             </div>
           )}
 
-          {step === "pay" && selectedWalletData && selectedBundleData && (
+          {step === "pay" && selectedWalletData && (
             <div className="space-y-4 pb-1">
               <div className="p-4 rounded-lg bg-secondary text-center">
-                <p className="text-sm text-muted-foreground mb-1">Amount to send</p>
+                <p className="text-sm text-muted-foreground mb-1">{t("payment.amountToSend")}</p>
                 <p className="text-2xl font-bold text-gold">
-                  ${selectedBundleData.price_usd.toLocaleString()}
+                  ${parsedAmount.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  in {selectedWalletData.currency}
+                  {t("payment.in")} {selectedWalletData.currency}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Send {selectedWalletData.currency} to:</Label>
+                <Label>{t("payment.sendTo", { currency: selectedWalletData.currency })}</Label>
                 <div className="flex items-center gap-2">
-                  <Input
-                    readOnly
-                    value={selectedWalletData.address}
-                    className="font-mono text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={copyAddress}
-                    className="shrink-0"
-                  >
-                    {copied ? (
-                      <CheckCircle className="w-4 h-4 text-teal" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
+                  <Input readOnly value={selectedWalletData.address} className="font-mono text-sm" />
+                  <Button variant="outline" size="icon" onClick={copyAddress} className="shrink-0">
+                    {copied ? <CheckCircle className="w-4 h-4 text-teal" /> : <Copy className="w-4 h-4" />}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Network: {selectedWalletData.network}
+                  {t("payment.network")}: {selectedWalletData.network}
                 </p>
               </div>
 
               <div className="p-4 rounded-lg border border-gold/20 bg-gold/5">
-                <p className="text-sm font-medium text-gold mb-1">Important</p>
+                <p className="text-sm font-medium text-gold mb-1">{t("payment.important")}</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Send the exact amount in crypto equivalent</li>
-                  <li>• Only send {selectedWalletData.currency} on {selectedWalletData.network}</li>
-                  <li>• Your deposit will be verified within 24 hours</li>
+                  <li>• {t("payment.exactAmount")}</li>
+                  <li>• {t("payment.onlyOn", { currency: selectedWalletData.currency, network: selectedWalletData.network })}</li>
+                  <li>• {t("payment.verifyWithin")}</li>
                 </ul>
               </div>
             </div>
@@ -387,24 +296,14 @@ export function PaymentUploadDialog({
           {step === "confirm" && (
             <div className="space-y-4 pb-1">
               <div className="space-y-2">
-                <Label>Payment Proof Screenshot</Label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-
+                <Label>{t("payment.proofScreenshot")}</Label>
+                <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" />
                 {proofPreview ? (
                   <div className="relative rounded-lg overflow-hidden border border-border">
-                    <img
-                      src={proofPreview}
-                      alt="Payment proof preview"
-                      className="w-full h-48 object-cover"
-                    />
+                    <img src={proofPreview} alt="Proof" className="w-full h-48 object-cover" />
                     <button
                       onClick={removeProofFile}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background transition-colors"
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-background"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -415,58 +314,50 @@ export function PaymentUploadDialog({
                     className="w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-gold/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
                   >
                     <ImageIcon className="w-8 h-8" />
-                    <span className="text-sm">Click to upload proof screenshot</span>
+                    <span className="text-sm">{t("payment.uploadHint")}</span>
                   </button>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Upload a screenshot of your completed transaction
-                </p>
+                <p className="text-xs text-muted-foreground">{t("payment.uploadDesc")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cryptoAmount">Amount Sent (optional)</Label>
+                <Label htmlFor="cryptoAmount">{t("payment.amountSent")}</Label>
                 <Input
                   id="cryptoAmount"
                   type="number"
                   step="any"
-                  placeholder={`Amount in ${selectedWalletData?.currency || "crypto"}`}
+                  placeholder={t("payment.amountSentPh", { currency: selectedWalletData?.currency || "crypto" })}
                   value={cryptoAmount}
                   onChange={(e) => setCryptoAmount(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="txid">Transaction ID (optional)</Label>
+                <Label htmlFor="txid">{t("payment.txid")}</Label>
                 <Input
                   id="txid"
-                  placeholder="Enter your transaction hash"
+                  placeholder={t("payment.txidPh")}
                   value={txid}
                   onChange={(e) => setTxid(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Providing the transaction ID helps us verify your payment faster
-                </p>
+                <p className="text-xs text-muted-foreground">{t("payment.txidHint")}</p>
               </div>
 
               <div className="p-4 rounded-lg bg-secondary">
-                <p className="text-sm font-medium mb-2">Summary</p>
+                <p className="text-sm font-medium mb-2">{t("payment.summary")}</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Bundle:</span>
-                    <span>{selectedBundleData?.name}</span>
+                    <span className="text-muted-foreground">{t("payment.depositAmount")}:</span>
+                    <span className="text-gold">${parsedAmount.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Amount:</span>
-                    <span className="text-gold">${selectedBundleData?.price_usd.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Method:</span>
+                    <span className="text-muted-foreground">{t("payment.method")}:</span>
                     <span>{selectedWalletData?.currency}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Proof:</span>
+                    <span className="text-muted-foreground">{t("payment.proof")}:</span>
                     <span className={proofFile ? "text-teal" : "text-muted-foreground"}>
-                      {proofFile ? "Uploaded" : "Not provided"}
+                      {proofFile ? t("payment.uploaded") : t("payment.notProvided")}
                     </span>
                   </div>
                 </div>
@@ -476,45 +367,31 @@ export function PaymentUploadDialog({
         </div>
 
         <DialogFooter className="shrink-0 gap-2 border-t border-border pt-4">
-          {step === "select" && (
+          {step === "amount" && (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
               <Button
                 variant="gold"
                 onClick={() => setStep("pay")}
-                disabled={!selectedBundle || !selectedWallet}
+                disabled={!selectedWallet || !parsedAmount || parsedAmount <= 0}
               >
-                Continue
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {t("common.continue")} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </>
           )}
-
           {step === "pay" && (
             <>
-              <Button variant="outline" onClick={() => setStep("select")}>
-                Back
-              </Button>
+              <Button variant="outline" onClick={() => setStep("amount")}>{t("common.back")}</Button>
               <Button variant="gold" onClick={() => setStep("confirm")}>
-                I've Made the Payment
-                <CheckCircle className="w-4 h-4 ml-2" />
+                {t("payment.iPaid")} <CheckCircle className="w-4 h-4 ml-2" />
               </Button>
             </>
           )}
-
           {step === "confirm" && (
             <>
-              <Button variant="outline" onClick={() => setStep("pay")}>
-                Back
-              </Button>
-              <Button 
-                variant="gold" 
-                onClick={handleSubmit} 
-                disabled={submitting || uploading}
-              >
-                {uploading ? "Uploading..." : submitting ? "Submitting..." : "Submit for Review"}
+              <Button variant="outline" onClick={() => setStep("pay")}>{t("common.back")}</Button>
+              <Button variant="gold" onClick={handleSubmit} disabled={submitting || uploading}>
+                {uploading ? t("payment.uploading") : submitting ? t("payment.submitting") : t("payment.submitReview")}
                 <Upload className="w-4 h-4 ml-2" />
               </Button>
             </>
