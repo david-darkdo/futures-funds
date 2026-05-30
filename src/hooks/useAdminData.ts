@@ -597,6 +597,7 @@ export function useAdminData() {
     updateWallet,
     deleteWallet,
     updateUserStatus,
+    toggleInvestingFreeze,
     addBundle,
     updateBundle,
     deleteBundle,
