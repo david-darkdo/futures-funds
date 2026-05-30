@@ -168,6 +168,13 @@ export function PlansSection() {
           Past performance is not indicative of future results. All growth values are admin-managed simulations.
         </p>
       </div>
+
+      {user && (
+        <>
+          <InvestDialog open={investOpen} onOpenChange={setInvestOpen} preselectedBundleId={selectedBundleId} onSuccess={balances.refetch} />
+          <PaymentUploadDialog open={depositOpen} onOpenChange={setDepositOpen} onSuccess={balances.refetch} />
+        </>
+      )}
     </section>
   );
 }
