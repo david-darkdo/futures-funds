@@ -9,6 +9,9 @@ interface Profile {
   email: string | null;
   status: string | null;
   created_at: string | null;
+  investing_frozen?: boolean | null;
+  main_balance?: number | null;
+  profit_balance?: number | null;
 }
 
 interface Bundle {
