@@ -8,6 +8,7 @@ import { TrendingUp, Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -87,6 +88,15 @@ export default function Login() {
           </div>
 
           {/* Form */}
+          <div className="space-y-4 mb-6">
+            <GoogleSignInButton />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">{t("auth.orContinueWith")}</span>
+              </div>
+            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">{t("auth.email")}</Label>
