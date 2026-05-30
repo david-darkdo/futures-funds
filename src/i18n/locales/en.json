@@ -189,7 +189,9 @@
     "termsRequiredDesc": "Please agree to the terms and conditions.",
     "accountCreated": "Account created!",
     "accountCreatedDesc": "You have been signed in to your new account.",
-    "alreadyRegistered": "This email is already registered. Please sign in instead."
+    "alreadyRegistered": "This email is already registered. Please sign in instead.",
+    "continueWithGoogle": "Continue with Google",
+    "orContinueWith": "or continue with email"
   },
   "payment": {
     "selectBundleTitle": "Select Investment Bundle",
