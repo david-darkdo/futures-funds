@@ -189,7 +189,9 @@
     "termsRequiredDesc": "Veuillez accepter les conditions.",
     "accountCreated": "Compte créé !",
     "accountCreatedDesc": "Vous êtes connecté à votre nouveau compte.",
-    "alreadyRegistered": "Cet e-mail est déjà enregistré. Veuillez vous connecter."
+    "alreadyRegistered": "Cet e-mail est déjà enregistré. Veuillez vous connecter.",
+    "continueWithGoogle": "Continuer avec Google",
+    "orContinueWith": "ou continuer avec un e-mail"
   },
   "payment": {
     "selectBundleTitle": "Sélectionner un forfait",

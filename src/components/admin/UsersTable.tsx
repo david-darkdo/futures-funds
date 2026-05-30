@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Edit, Search, Download } from "lucide-react";
+import { Eye, Edit, Search, Download, Snowflake, Sun } from "lucide-react";
 import { maskEmail } from "@/lib/utils";
 
 interface Profile {
@@ -33,14 +33,18 @@ interface Profile {
   email: string | null;
   status: string | null;
   created_at: string | null;
+  investing_frozen?: boolean | null;
+  main_balance?: number | null;
+  profit_balance?: number | null;
 }
 
 interface UsersTableProps {
   profiles: Profile[];
   onUpdateStatus: (userId: string, status: string) => Promise<boolean>;
+  onToggleFreeze?: (userId: string, frozen: boolean) => Promise<boolean>;
 }
 
-export function UsersTable({ profiles, onUpdateStatus }: UsersTableProps) {
+export function UsersTable({ profiles, onUpdateStatus, onToggleFreeze }: UsersTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -156,11 +160,12 @@ export function UsersTable({ profiles, onUpdateStatus }: UsersTableProps) {
                       : "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleView(profile)}
+                        title="View"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -168,9 +173,21 @@ export function UsersTable({ profiles, onUpdateStatus }: UsersTableProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(profile)}
+                        title="Edit status"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      {onToggleFreeze && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onToggleFreeze(profile.id, !profile.investing_frozen)}
+                          title={profile.investing_frozen ? "Unfreeze investing" : "Freeze investing"}
+                          className={profile.investing_frozen ? "text-destructive" : "text-muted-foreground"}
+                        >
+                          {profile.investing_frozen ? <Sun className="w-4 h-4" /> : <Snowflake className="w-4 h-4" />}
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

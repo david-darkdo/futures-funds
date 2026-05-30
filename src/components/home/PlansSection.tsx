@@ -1,8 +1,12 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { InvestDialog } from "@/components/payments/InvestDialog";
+import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
+import { useBalances } from "@/hooks/useBalances";
 
 interface BundlePlan {
   id: string;
@@ -19,6 +23,12 @@ interface BundlePlan {
 export function PlansSection() {
   const [bundles, setBundles] = useState<BundlePlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [investOpen, setInvestOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [selectedBundleId, setSelectedBundleId] = useState<string | undefined>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const balances = useBalances();
 
   useEffect(() => {
     const fetchBundles = async () => {
@@ -134,9 +144,17 @@ export function PlansSection() {
                     variant={isPopular ? "gold" : "gold-outline"}
                     className="w-full"
                     size="lg"
-                    asChild
+                    onClick={() => {
+                      if (!user) { navigate("/signup"); return; }
+                      setSelectedBundleId(bundle.id);
+                      if (balances.mainBalance > 0) {
+                        setInvestOpen(true);
+                      } else {
+                        setDepositOpen(true);
+                      }
+                    }}
                   >
-                    <Link to="/signup">Deposit</Link>
+                    {user && balances.mainBalance > 0 ? "Invest" : "Deposit"}
                   </Button>
                 </div>
               );
@@ -150,6 +168,13 @@ export function PlansSection() {
           Past performance is not indicative of future results. All growth values are admin-managed simulations.
         </p>
       </div>
+
+      {user && (
+        <>
+          <InvestDialog open={investOpen} onOpenChange={setInvestOpen} preselectedBundleId={selectedBundleId} onSuccess={balances.refetch} />
+          <PaymentUploadDialog open={depositOpen} onOpenChange={setDepositOpen} onSuccess={balances.refetch} />
+        </>
+      )}
     </section>
   );
 }
