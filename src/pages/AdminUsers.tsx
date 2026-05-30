@@ -7,7 +7,7 @@ import { useAdminData } from "@/hooks/useAdminData";
 
 export default function AdminUsers() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { profiles, stats, loading, updateUserStatus } = useAdminData();
+  const { profiles, stats, loading, updateUserStatus, toggleInvestingFreeze } = useAdminData();
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -48,7 +48,7 @@ export default function AdminUsers() {
               <Skeleton className="h-64 w-full rounded-xl" />
             </div>
           ) : (
-            <UsersTable profiles={profiles} onUpdateStatus={updateUserStatus} />
+            <UsersTable profiles={profiles} onUpdateStatus={updateUserStatus} onToggleFreeze={toggleInvestingFreeze} />
           )}
         </main>
       </div>
