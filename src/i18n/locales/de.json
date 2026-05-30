@@ -189,7 +189,9 @@
     "termsRequiredDesc": "Bitte akzeptieren Sie die Bedingungen.",
     "accountCreated": "Konto erstellt!",
     "accountCreatedDesc": "Sie sind in Ihrem neuen Konto angemeldet.",
-    "alreadyRegistered": "Diese E-Mail ist bereits registriert. Bitte anmelden."
+    "alreadyRegistered": "Diese E-Mail ist bereits registriert. Bitte anmelden.",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "orContinueWith": "oder mit E-Mail fortfahren"
   },
   "payment": {
     "selectBundleTitle": "Paket auswählen",

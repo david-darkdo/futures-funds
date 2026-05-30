@@ -189,7 +189,9 @@
     "termsRequiredDesc": "Por favor acepta los términos.",
     "accountCreated": "¡Cuenta creada!",
     "accountCreatedDesc": "Has iniciado sesión en tu nueva cuenta.",
-    "alreadyRegistered": "Este correo ya está registrado. Inicia sesión."
+    "alreadyRegistered": "Este correo ya está registrado. Inicia sesión.",
+    "continueWithGoogle": "Continuar con Google",
+    "orContinueWith": "o continuar con correo"
   },
   "payment": {
     "selectBundleTitle": "Seleccionar plan",
