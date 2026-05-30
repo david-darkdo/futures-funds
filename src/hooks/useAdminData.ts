@@ -223,117 +223,36 @@ export function useAdminData() {
   }, [fetchData]);
 
   const approvePayment = async (paymentId: string) => {
-    // Get payment details first
-    const payment = payments.find((p) => p.id === paymentId);
-    if (!payment) {
-      toast.error("Payment not found");
-      return false;
-    }
-
-    // Update payment status to approved
-    const { error: paymentError } = await supabase
+    // The DB trigger handle_payment_status_change credits the user's
+    // main_balance and writes a transaction. We only flip the status.
+    const { error } = await supabase
       .from("payments")
-      .update({ 
-        status: "approved", 
+      .update({
+        status: "approved",
         admin_id: user?.id,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString(),
       })
       .eq("id", paymentId);
 
-    if (paymentError) {
+    if (error) {
       toast.error("Failed to approve payment");
       return false;
     }
+    toast.success("Deposit approved — funds credited to user's main balance");
+    fetchData();
+    return true;
+  };
 
-    const bundlePrice = payment.bundle?.price_usd || 0;
-
-    // Check if user already has an active investment (multi-bundle support)
-    const existingActiveInvestment = investments.find(
-      (i) => i.user_id === payment.user_id && i.state === "active"
-    );
-
-    if (existingActiveInvestment) {
-      // MERGE: Add new bundle to existing portfolio balance
-      const newCurrentValue = existingActiveInvestment.current_value + bundlePrice;
-      const newInitialAmount = existingActiveInvestment.initial_amount + bundlePrice;
-      const newGrowthPercentage = ((newCurrentValue - newInitialAmount) / newInitialAmount) * 100;
-
-      // Update existing investment with merged values
-      const { error: updateError } = await supabase
-        .from("user_investments")
-        .update({
-          initial_amount: newInitialAmount,
-          current_value: newCurrentValue,
-          growth_percentage: newGrowthPercentage,
-          admin_note: `Merged ${payment.bundle?.name || "bundle"} investment`,
-          last_updated_by: user?.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingActiveInvestment.id);
-
-      if (updateError) {
-        console.error("Failed to merge investment:", updateError);
-        toast.error("Failed to merge investment into portfolio");
-        return false;
-      }
-
-      // Create a new investment record marked as 'merged' for history tracking
-      await supabase.from("user_investments").insert({
-        user_id: payment.user_id,
-        bundle_id: payment.bundle_id,
-        payment_id: paymentId,
-        initial_amount: bundlePrice,
-        current_value: bundlePrice,
-        growth_percentage: 0,
-        state: "merged",
-        admin_note: `Merged into investment ${existingActiveInvestment.id}`,
-      });
-
-      // Log deposit transaction
-      await supabase.from("transactions").insert({
-        user_id: payment.user_id,
-        investment_id: existingActiveInvestment.id,
-        type: "deposit",
-        amount: bundlePrice,
-        balance_after: newCurrentValue,
-        description: `New investment merged - ${payment.bundle?.name || "Investment Bundle"}`,
-      });
-
-      toast.success("Investment approved and merged into existing portfolio!");
-    } else {
-      // FIRST INVESTMENT: Create new active investment
-      const { data: investmentData, error: investmentError } = await supabase
-        .from("user_investments")
-        .insert({
-          user_id: payment.user_id,
-          bundle_id: payment.bundle_id,
-          payment_id: paymentId,
-          initial_amount: bundlePrice,
-          current_value: bundlePrice,
-          growth_percentage: 0,
-          state: "active",
-        })
-        .select()
-        .single();
-
-      if (investmentError) {
-        console.error("Failed to create investment:", investmentError);
-        toast.warning("Payment approved but investment record may need manual creation");
-      } else {
-        // Log deposit transaction
-        await supabase.from("transactions").insert({
-          user_id: payment.user_id,
-          investment_id: investmentData.id,
-          type: "deposit",
-          amount: bundlePrice,
-          balance_after: bundlePrice,
-          description: `Initial investment - ${payment.bundle?.name || "Investment Bundle"}`,
-        });
-
-        toast.success("Payment approved and investment activated!");
-      }
+  const toggleInvestingFreeze = async (userId: string, frozen: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ investing_frozen: frozen, updated_at: new Date().toISOString() })
+      .eq("id", userId);
+    if (error) {
+      toast.error("Failed to update freeze state");
+      return false;
     }
-
+    toast.success(frozen ? "Investing frozen for this user" : "Investing unfrozen");
     fetchData();
     return true;
   };
