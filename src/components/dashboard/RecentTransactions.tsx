@@ -141,8 +141,9 @@ export function RecentTransactions({ limit = 4 }: { limit?: number }) {
           <ul className="divide-y divide-border">
             {recent.map((tx: Transaction, idx) => {
               const Icon = ICON[tx.type] || Wallet;
-              const isPositive = POSITIVE.has(tx.type);
-              const isNegative = NEGATIVE.has(tx.type);
+              const isNeutral = NEUTRAL.has(tx.type);
+              const isPositive = !isNeutral && POSITIVE.has(tx.type);
+              const isNegative = !isNeutral && NEGATIVE.has(tx.type);
               const tone = TONE[tx.type] || "info";
               const toneCls = TONE_CLASSES[tone];
               const status = txStatusLabel(t, tx.type);
@@ -177,7 +178,7 @@ export function RecentTransactions({ limit = 4 }: { limit?: number }) {
                   </div>
                   <p className={cn(
                     "text-sm font-semibold shrink-0",
-                    isPositive ? "text-teal" : isNegative ? "text-destructive" : "text-foreground"
+                    isNeutral ? "text-muted-foreground" : isPositive ? "text-teal" : isNegative ? "text-destructive" : "text-foreground"
                   )}>
                     {isPositive ? "+" : isNegative ? "-" : ""}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
