@@ -55,7 +55,16 @@
     "deposit": "Dépôt",
     "growth": "Mise à jour",
     "drawdown": "Mise à jour",
-    "withdrawal": "Retrait"
+    "withdrawal": "Retrait",
+    "deposit_submitted": "Dépôt",
+    "deposit_approved": "Dépôt approuvé",
+    "deposit_rejected": "Dépôt rejeté",
+    "investment_started": "Investissement démarré",
+    "investment_completed": "Investissement terminé",
+    "profit_added": "Profit ajouté",
+    "withdrawal_requested": "Retrait demandé",
+    "withdrawal_approved": "Retrait approuvé",
+    "withdrawal_rejected": "Retrait rejeté"
   },
   "dashboard": {
     "homepage": "Accueil",
@@ -279,7 +288,10 @@
     "saving": "Enregistrement...",
     "saved": "Paramètres enregistrés",
     "uploadFailed": "Échec du téléversement",
-    "saveFailed": "Impossible d'enregistrer les paramètres"
+    "saveFailed": "Impossible d'enregistrer les paramètres",
+    "account": "Compte",
+    "logout": "Se déconnecter",
+    "loggedOut": "Déconnexion réussie"
   },
   "demo": {
     "title": "Essayez avant d'investir",
@@ -301,5 +313,36 @@
     "dashboard": "Tableau",
     "plans": "Forfaits",
     "profile": "Profil"
+  },
+  "txStatus": {
+    "deposit_submitted": "En attente",
+    "deposit_approved": "Approuvé",
+    "deposit_rejected": "Rejeté",
+    "investment_started": "Actif",
+    "investment_completed": "Mûri",
+    "profit_added": "Gagné",
+    "withdrawal_requested": "En attente",
+    "withdrawal_approved": "Approuvé",
+    "withdrawal_rejected": "Remboursé"
+  },
+  "invest": {
+    "title": "Investir",
+    "subtitle": "Utilisez votre solde pour démarrer un nouvel investissement",
+    "available": "Solde disponible",
+    "bundle": "Forfait d'investissement",
+    "selectBundle": "Sélectionnez un forfait",
+    "amount": "Montant",
+    "amountPh": "Entrez le montant en USD",
+    "min": "Min :",
+    "max": "Max :",
+    "in24h": "en 24h",
+    "expectedProfit": "Profit attendu",
+    "insufficient": "Solde insuffisant",
+    "enterAmount": "Entrez un montant valide",
+    "frozen": "L'investissement est temporairement désactivé sur votre compte",
+    "failed": "Échec de l'investissement",
+    "started": "Investissement démarré !",
+    "submitting": "Démarrage...",
+    "confirm": "Confirmer l'investissement"
   }
 }

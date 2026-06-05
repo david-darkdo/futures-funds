@@ -8,10 +8,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export function LanguageSwitcher({ variant = "ghost" }: { variant?: "ghost" | "outline" }) {
   const { i18n } = useTranslation();
+  const { user } = useAuth();
   const current = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) ?? SUPPORTED_LANGUAGES[0];
+
+  const change = async (code: string) => {
+    await i18n.changeLanguage(code);
+    try { localStorage.setItem("ff_lang", code); } catch {}
+    if (user) {
+      supabase.from("profiles").update({ language: code }).eq("id", user.id);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -25,7 +36,7 @@ export function LanguageSwitcher({ variant = "ghost" }: { variant?: "ghost" | "o
         {SUPPORTED_LANGUAGES.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onSelect={() => i18n.changeLanguage(lang.code)}
+            onSelect={() => change(lang.code)}
             className="cursor-pointer flex items-center justify-between gap-4"
           >
             <span>{lang.label}</span>
