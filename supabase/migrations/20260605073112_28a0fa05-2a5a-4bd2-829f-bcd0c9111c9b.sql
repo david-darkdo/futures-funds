@@ -1,0 +1,1 @@
+ALTER TABLE public.user_investments DROP CONSTRAINT IF EXISTS user_investments_user_id_bundle_id_key;
