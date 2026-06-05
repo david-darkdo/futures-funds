@@ -10,7 +10,10 @@ import { format } from "date-fns";
 
 const POSITIVE = new Set<string>([
   "deposit", "deposit_approved", "growth", "profit_added",
-  "investment_completed", "withdrawal_rejected",
+  "investment_completed",
+]);
+const NEUTRAL = new Set<string>([
+  "investment_started", "withdrawal_rejected",
 ]);
 
 export default function DashboardTransactions() {
