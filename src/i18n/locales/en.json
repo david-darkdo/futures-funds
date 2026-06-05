@@ -55,7 +55,16 @@
     "deposit": "Deposit",
     "growth": "Performance Update",
     "drawdown": "Performance Update",
-    "withdrawal": "Withdrawal"
+    "withdrawal": "Withdrawal",
+    "deposit_submitted": "Deposit",
+    "deposit_approved": "Deposit Approved",
+    "deposit_rejected": "Deposit Rejected",
+    "investment_started": "Investment Started",
+    "investment_completed": "Investment Completed",
+    "profit_added": "Profit Added",
+    "withdrawal_requested": "Withdrawal Requested",
+    "withdrawal_approved": "Withdrawal Approved",
+    "withdrawal_rejected": "Withdrawal Rejected"
   },
   "dashboard": {
     "homepage": "Homepage",
@@ -279,7 +288,10 @@
     "saving": "Saving...",
     "saved": "Settings saved",
     "uploadFailed": "Upload failed",
-    "saveFailed": "Could not save settings"
+    "saveFailed": "Could not save settings",
+    "account": "Account",
+    "logout": "Log Out",
+    "loggedOut": "Signed out successfully"
   },
   "demo": {
     "title": "Try Before You Invest",
@@ -301,5 +313,36 @@
     "dashboard": "Dashboard",
     "plans": "Plans",
     "profile": "Profile"
+  },
+  "txStatus": {
+    "deposit_submitted": "Pending",
+    "deposit_approved": "Approved",
+    "deposit_rejected": "Rejected",
+    "investment_started": "Active",
+    "investment_completed": "Matured",
+    "profit_added": "Earned",
+    "withdrawal_requested": "Pending",
+    "withdrawal_approved": "Approved",
+    "withdrawal_rejected": "Refunded"
+  },
+  "invest": {
+    "title": "Invest",
+    "subtitle": "Use your balance to start a new investment",
+    "available": "Available Balance",
+    "bundle": "Investment Bundle",
+    "selectBundle": "Select a bundle",
+    "amount": "Amount",
+    "amountPh": "Enter amount in USD",
+    "min": "Min:",
+    "max": "Max:",
+    "in24h": "in 24h",
+    "expectedProfit": "Expected profit",
+    "insufficient": "Insufficient balance",
+    "enterAmount": "Enter a valid amount",
+    "frozen": "Investing is temporarily disabled on your account",
+    "failed": "Investment failed",
+    "started": "Investment started!",
+    "submitting": "Starting...",
+    "confirm": "Confirm Investment"
   }
 }

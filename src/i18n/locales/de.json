@@ -55,7 +55,16 @@
     "deposit": "Einzahlung",
     "growth": "Performance-Update",
     "drawdown": "Performance-Update",
-    "withdrawal": "Auszahlung"
+    "withdrawal": "Auszahlung",
+    "deposit_submitted": "Einzahlung",
+    "deposit_approved": "Einzahlung genehmigt",
+    "deposit_rejected": "Einzahlung abgelehnt",
+    "investment_started": "Investition gestartet",
+    "investment_completed": "Investition abgeschlossen",
+    "profit_added": "Gewinn hinzugefügt",
+    "withdrawal_requested": "Auszahlung angefordert",
+    "withdrawal_approved": "Auszahlung genehmigt",
+    "withdrawal_rejected": "Auszahlung abgelehnt"
   },
   "dashboard": {
     "homepage": "Startseite",
@@ -279,7 +288,10 @@
     "saving": "Speichern...",
     "saved": "Einstellungen gespeichert",
     "uploadFailed": "Upload fehlgeschlagen",
-    "saveFailed": "Einstellungen konnten nicht gespeichert werden"
+    "saveFailed": "Einstellungen konnten nicht gespeichert werden",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "loggedOut": "Erfolgreich abgemeldet"
   },
   "demo": {
     "title": "Testen Sie vor dem Investieren",
@@ -301,5 +313,36 @@
     "dashboard": "Übersicht",
     "plans": "Pakete",
     "profile": "Profil"
+  },
+  "txStatus": {
+    "deposit_submitted": "Ausstehend",
+    "deposit_approved": "Genehmigt",
+    "deposit_rejected": "Abgelehnt",
+    "investment_started": "Aktiv",
+    "investment_completed": "Fällig",
+    "profit_added": "Verdient",
+    "withdrawal_requested": "Ausstehend",
+    "withdrawal_approved": "Genehmigt",
+    "withdrawal_rejected": "Erstattet"
+  },
+  "invest": {
+    "title": "Investieren",
+    "subtitle": "Nutzen Sie Ihr Guthaben für eine neue Investition",
+    "available": "Verfügbares Guthaben",
+    "bundle": "Investitionspaket",
+    "selectBundle": "Paket auswählen",
+    "amount": "Betrag",
+    "amountPh": "Betrag in USD eingeben",
+    "min": "Min:",
+    "max": "Max:",
+    "in24h": "in 24h",
+    "expectedProfit": "Erwarteter Gewinn",
+    "insufficient": "Unzureichendes Guthaben",
+    "enterAmount": "Gültigen Betrag eingeben",
+    "frozen": "Investitionen sind vorübergehend deaktiviert",
+    "failed": "Investition fehlgeschlagen",
+    "started": "Investition gestartet!",
+    "submitting": "Starten...",
+    "confirm": "Investition bestätigen"
   }
 }

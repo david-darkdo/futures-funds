@@ -55,7 +55,16 @@
     "deposit": "Depósito",
     "growth": "Actualización",
     "drawdown": "Actualización",
-    "withdrawal": "Retiro"
+    "withdrawal": "Retiro",
+    "deposit_submitted": "Depósito",
+    "deposit_approved": "Depósito aprobado",
+    "deposit_rejected": "Depósito rechazado",
+    "investment_started": "Inversión iniciada",
+    "investment_completed": "Inversión completada",
+    "profit_added": "Beneficio añadido",
+    "withdrawal_requested": "Retiro solicitado",
+    "withdrawal_approved": "Retiro aprobado",
+    "withdrawal_rejected": "Retiro rechazado"
   },
   "dashboard": {
     "homepage": "Inicio",
@@ -279,7 +288,10 @@
     "saving": "Guardando...",
     "saved": "Ajustes guardados",
     "uploadFailed": "Error al subir",
-    "saveFailed": "No se pudieron guardar los ajustes"
+    "saveFailed": "No se pudieron guardar los ajustes",
+    "account": "Cuenta",
+    "logout": "Cerrar sesión",
+    "loggedOut": "Sesión cerrada correctamente"
   },
   "demo": {
     "title": "Prueba antes de invertir",
@@ -301,5 +313,36 @@
     "dashboard": "Panel",
     "plans": "Planes",
     "profile": "Perfil"
+  },
+  "txStatus": {
+    "deposit_submitted": "Pendiente",
+    "deposit_approved": "Aprobado",
+    "deposit_rejected": "Rechazado",
+    "investment_started": "Activo",
+    "investment_completed": "Vencido",
+    "profit_added": "Ganado",
+    "withdrawal_requested": "Pendiente",
+    "withdrawal_approved": "Aprobado",
+    "withdrawal_rejected": "Reembolsado"
+  },
+  "invest": {
+    "title": "Invertir",
+    "subtitle": "Usa tu saldo para iniciar una nueva inversión",
+    "available": "Saldo disponible",
+    "bundle": "Paquete de inversión",
+    "selectBundle": "Selecciona un paquete",
+    "amount": "Cantidad",
+    "amountPh": "Ingresa el monto en USD",
+    "min": "Mín:",
+    "max": "Máx:",
+    "in24h": "en 24h",
+    "expectedProfit": "Beneficio esperado",
+    "insufficient": "Saldo insuficiente",
+    "enterAmount": "Ingresa un monto válido",
+    "frozen": "La inversión está temporalmente deshabilitada en tu cuenta",
+    "failed": "La inversión falló",
+    "started": "¡Inversión iniciada!",
+    "submitting": "Iniciando...",
+    "confirm": "Confirmar inversión"
   }
 }
