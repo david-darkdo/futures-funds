@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Camera, Moon, Sun, Loader2, X } from "lucide-react";
+import { Camera, Moon, Sun, Loader2, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,9 +29,16 @@ interface ProfileData {
 
 export default function DashboardSettings() {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success(t("settings.loggedOut"));
+    navigate("/");
+  };
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -253,6 +261,22 @@ export default function DashboardSettings() {
           {saving ? t("settings.saving") : t("settings.save")}
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.account")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="w-4 h-4" />
+            {t("settings.logout")}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
