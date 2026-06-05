@@ -78,7 +78,8 @@ export default function DashboardTransactions() {
                 </thead>
                 <tbody>
                   {transactions.map((tx) => {
-                    const isPositive = POSITIVE.has(tx.type);
+                    const isNeutral = NEUTRAL.has(tx.type);
+                    const isPositive = !isNeutral && POSITIVE.has(tx.type);
                     return (
                       <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30">
                         <td className="py-4 px-4 text-sm">
@@ -86,8 +87,8 @@ export default function DashboardTransactions() {
                           <span className="text-xs text-muted-foreground block">{format(new Date(tx.created_at), "h:mm a")}</span>
                         </td>
                         <td className="py-4 px-4 font-medium">{txLabel(t, tx.type)}</td>
-                        <td className={cn("py-4 px-4 text-right font-semibold", isPositive ? "text-teal" : "text-destructive")}>
-                          {isPositive ? "+" : "-"}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        <td className={cn("py-4 px-4 text-right font-semibold", isNeutral ? "text-muted-foreground" : isPositive ? "text-teal" : "text-destructive")}>
+                          {isNeutral ? "" : isPositive ? "+" : "-"}${Math.abs(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-4 text-right font-medium">
                           ${tx.balance_after.toLocaleString(undefined, { minimumFractionDigits: 2 })}
