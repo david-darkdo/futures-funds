@@ -83,10 +83,6 @@ export function Navbar() {
               </a>
             ))}
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              <div className="flex items-center justify-between py-1">
-                <span className="text-sm text-muted-foreground">{t("nav.language")}</span>
-                <LanguageSwitcher variant="outline" />
-              </div>
               <Button variant="ghost" asChild className="justify-start">
                 <Link to="/login">{t("nav.signIn")}</Link>
               </Button>
