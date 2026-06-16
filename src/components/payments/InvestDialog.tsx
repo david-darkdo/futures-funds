@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBalances } from "@/hooks/useBalances";
 import { Layers, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { notifyEmail } from "@/lib/notify";
+
 
 interface Bundle {
   id: string;
@@ -89,10 +91,16 @@ export function InvestDialog({ open, onOpenChange, preselectedBundleId, onSucces
       return;
     }
     toast.success(t("invest.started"));
+    notifyEmail("investment", {
+      amount: parsed.toFixed(2),
+      bundleName: selected?.name || "Bundle",
+      dailyRate: String(selected?.daily_growth_rate ?? 0),
+    });
     await refetch();
     onOpenChange(false);
     onSuccess?.();
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

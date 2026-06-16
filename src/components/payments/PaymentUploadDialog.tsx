@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { validateNumber, validateOptionalNumber, validateTransactionId, VALIDATION_LIMITS } from "@/lib/validation";
+import { notifyEmail } from "@/lib/notify";
+
 
 interface Wallet {
   id: string;
@@ -195,10 +197,15 @@ export function PaymentUploadDialog({ open, onOpenChange, onSuccess }: PaymentUp
     }
 
     toast.success(t("payment.submitted"));
+    notifyEmail("deposit", {
+      amount: amountValidation.value.toFixed(2),
+      currency: selectedWalletData?.currency || "",
+    });
     setSubmitting(false);
     onOpenChange(false);
     onSuccess?.();
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

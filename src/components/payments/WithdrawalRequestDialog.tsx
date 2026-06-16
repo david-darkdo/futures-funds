@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { validateNumber, validateWalletAddress, VALIDATION_LIMITS } from "@/lib/validation";
+import { notifyEmail } from "@/lib/notify";
+
 
 interface Props {
   open: boolean;
@@ -107,9 +109,15 @@ export function WithdrawalRequestDialog({ open, onOpenChange, availableBalance, 
       return;
     }
     toast.success(t("withdraw.submitted"));
+    notifyEmail("withdrawal", {
+      amount: parsedAmount.toFixed(2),
+      currency,
+      network,
+    });
     onOpenChange(false);
     onSuccess?.();
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
