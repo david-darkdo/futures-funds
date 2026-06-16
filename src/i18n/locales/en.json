@@ -246,7 +246,11 @@
     "completeAll": "Please complete all fields",
     "submitted": "Payment submitted for review!",
     "submitFailed": "Failed to submit payment. Please try again.",
-    "uploadFailed": "Failed to upload payment proof"
+    "uploadFailed": "Failed to upload payment proof",
+    "depositTitle": "Deposit Funds",
+    "depositDesc": "Add funds to your main balance",
+    "depositAmount": "Deposit Amount (USD)",
+    "depositAmountHint": "Minimum $1"
   },
   "withdraw": {
     "title": "Request Withdrawal",
@@ -293,21 +297,6 @@
     "logout": "Log Out",
     "loggedOut": "Signed out successfully"
   },
-  "demo": {
-    "title": "Try Before You Invest",
-    "description": "Experience the full investment lifecycle with simulated funds. See how growth works, track performance on your dashboard, and feel confident before committing real capital.",
-    "createBtn": "Create Demo Investment",
-    "signupBtn": "Sign Up & Try Demo",
-    "noCard": "No credit card needed • Instant access • Full dashboard experience",
-    "dialogTitle": "Create Demo Investment",
-    "dialogDesc": "Experience real-time investment growth with simulated funds. No real money involved.",
-    "standardPlan": "Standard Plan",
-    "amountLabel": "Simulated Investment Amount ($)",
-    "amountHint": "Choose any amount — this is a simulation with no real funds.",
-    "cancel": "Cancel",
-    "start": "Start Demo",
-    "creating": "Creating..."
-  },
   "bottomNav": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -344,5 +333,158 @@
     "started": "Investment started!",
     "submitting": "Starting...",
     "confirm": "Confirm Investment"
+  },
+  "home": {
+    "hero": {
+      "badge": "Secure & Transparent Crypto Investment",
+      "titleLine1": "Smart Crypto Investment.",
+      "titleLine2": "Transparent Growth.",
+      "titleLine3": "Secure Future.",
+      "subtitle": "Join thousands of investors who trust FutureFunds for secure, manually-verified crypto investments with complete transparency.",
+      "getStarted": "Get Started",
+      "viewPlans": "View Plans",
+      "stat1": "Manual Verification",
+      "stat2": "Active Investors",
+      "stat3": "Support Available"
+    },
+    "why": {
+      "tag": "Why Choose Us",
+      "titleLead": "Why",
+      "titleAccent": "FutureFunds",
+      "subtitle": "We combine cutting-edge technology with human expertise to deliver a secure and transparent investment experience.",
+      "items": {
+        "security": {
+          "title": "Bank-Grade Security",
+          "desc": "Your investments are protected with advanced encryption and multi-layer security protocols."
+        },
+        "verification": {
+          "title": "Manual Verification",
+          "desc": "Every payment is personally verified by our team ensuring complete accuracy and transparency."
+        },
+        "curated": {
+          "title": "Curated Opportunities",
+          "desc": "Access carefully selected crypto investment strategies designed for sustainable growth."
+        },
+        "risk": {
+          "title": "Risk Management",
+          "desc": "Our expert team monitors market conditions to protect and optimize your investments."
+        }
+      }
+    },
+    "how": {
+      "tag": "Simple Process",
+      "titleLead": "How It",
+      "titleAccent": "Works",
+      "subtitle": "Getting started with FutureFunds is simple and straightforward. Follow these steps to begin your investment journey.",
+      "steps": {
+        "account": {
+          "title": "Create Account",
+          "desc": "Sign up in seconds with just your email and password."
+        },
+        "bundle": {
+          "title": "Choose Bundle",
+          "desc": "Select an investment bundle that matches your goals."
+        },
+        "pay": {
+          "title": "Pay with Crypto",
+          "desc": "Send payment to our secure wallet address using your preferred crypto."
+        },
+        "proof": {
+          "title": "Upload Proof",
+          "desc": "Submit your transaction screenshot for verification."
+        },
+        "verify": {
+          "title": "Management Verifies",
+          "desc": "Our team manually reviews and approves your payment."
+        },
+        "grow": {
+          "title": "Start Growing",
+          "desc": "Your dashboard activates and investment journey begins."
+        }
+      }
+    },
+    "security": {
+      "tag": "Security First",
+      "titleLead": "Your Security is Our",
+      "titleAccent": "Priority",
+      "subtitle": "We've built FutureFunds with security at its core. From encrypted communications to manual verification processes, every layer is designed to protect your investments.",
+      "badge1": "256-bit Encryption",
+      "badge2": "SOC 2 Compliant",
+      "badge3": "GDPR Ready",
+      "items": {
+        "encryption": {
+          "title": "End-to-End Encryption",
+          "desc": "All data is encrypted using industry-standard protocols."
+        },
+        "manual": {
+          "title": "Manual Verification",
+          "desc": "Every transaction is personally reviewed by our team."
+        },
+        "infra": {
+          "title": "Secure Infrastructure",
+          "desc": "Enterprise-grade servers with 99.9% uptime guarantee."
+        },
+        "kyc": {
+          "title": "KYC Compliance",
+          "desc": "Identity verification for enhanced account security."
+        },
+        "noAuto": {
+          "title": "No Auto Wallets",
+          "desc": "Manual wallet management prevents automated exploits."
+        },
+        "audit": {
+          "title": "Full Audit Trail",
+          "desc": "Complete transparency with detailed activity logs."
+        }
+      }
+    },
+    "cta": {
+      "titleLead": "Ready to Start Your",
+      "titleAccent": "Investment Journey?",
+      "subtitle": "Join thousands of investors who trust FutureFunds. Create your account today and take the first step towards your financial future.",
+      "primary": "Create Free Account",
+      "secondary": "Compare Plans",
+      "trust": "Your data is protected with bank-grade security"
+    }
+  },
+  "footer": {
+    "tagline": "Smart crypto investment platform with transparent growth and secure future opportunities.",
+    "company": "Company",
+    "legal": "Legal",
+    "support": "Support",
+    "about": "About Us",
+    "how": "How It Works",
+    "security": "Security",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "risk": "Risk Disclosure",
+    "faq": "FAQ",
+    "help": "Help Center",
+    "emailSupport": "Email Support",
+    "rights": "All rights reserved.",
+    "disclaimer": "Investment involves risk. Past performance is not indicative of future results. Please invest responsibly."
+  },
+  "adminEmail": {
+    "title": "Email Management",
+    "subtitle": "Compose and send custom emails to clients",
+    "recipient": "Recipient email",
+    "recipientPh": "client@example.com",
+    "prompt": "Prompt / topic",
+    "promptPh": "Describe what you want to communicate...",
+    "subject": "Subject",
+    "subjectPh": "Email subject",
+    "body": "Email body",
+    "bodyPh": "Email content (HTML allowed)",
+    "generate": "Generate with AI",
+    "generating": "Generating...",
+    "send": "Send Email",
+    "sending": "Sending...",
+    "sent": "Email sent!",
+    "failed": "Failed to send",
+    "generateFailed": "Failed to generate content",
+    "includeImage": "Include generated image",
+    "preview": "Preview",
+    "imageGenerated": "Embedded image generated"
   }
 }
