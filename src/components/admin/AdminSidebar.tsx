@@ -1,18 +1,20 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  TrendingUp, 
-  LayoutDashboard, 
+import {
+  TrendingUp,
+  LayoutDashboard,
   CreditCard,
   Users,
-  Package, 
-  Settings, 
+  Package,
+  Settings,
   LogOut,
   Wallet,
   X,
   ArrowDownToLine,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Mail
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -32,7 +34,9 @@ const adminSidebarLinks = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Bundles", href: "/admin/bundles", icon: Package },
   { name: "Wallets", href: "/admin/wallets", icon: Wallet },
+  { name: "Emails", href: "/admin/emails", icon: Mail },
 ];
+
 
 export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdrawals }: AdminSidebarProps) {
   const location = useLocation();

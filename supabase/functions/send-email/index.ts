@@ -208,8 +208,94 @@ We continue to apply structured investment strategies to optimize performance. V
   const refCode = generateRefCode(userId);
   return { subject, html: baseLayout(fullName, subject, body, "View Full Report", DASHBOARD_URL, refCode) };
 }
+function depositEmail(fullName: string, userId: string, amount: string, currency?: string): { subject: string; html: string } {
+  const subject = "Deposit Received — Future Funds";
+  const body = `
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0 0 16px;">
+We have received your deposit submission and it is now in review.
+</p>
+<div style="background:#0d1524;border-radius:8px;padding:18px 22px;margin:20px 0;border:1px solid #1e2d47;">
+<p style="color:#c9a84c;font-size:14px;font-weight:700;margin:0 0 10px;">Deposit Details</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Amount:</td><td style="color:#c9a84c;font-size:14px;padding:4px 0;font-weight:700;">$${amount}${currency ? " " + currency : ""}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Status:</td><td style="color:#c5d0dc;font-size:13px;padding:4px 0;">Pending verification</td></tr>
+</table>
+</div>
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0;">
+Our team will verify your payment within 24 hours and your main balance will be credited automatically.
+</p>`;
+  return { subject, html: baseLayout(fullName, subject, body, "View Dashboard", DASHBOARD_URL, generateRefCode(userId)) };
+}
+
+function investmentEmail(fullName: string, userId: string, amount: string, bundleName: string, dailyRate: string): { subject: string; html: string } {
+  const subject = "Investment Started — Future Funds";
+  const body = `
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0 0 16px;">
+Your investment has been successfully started.
+</p>
+<div style="background:#0d1524;border-radius:8px;padding:18px 22px;margin:20px 0;border:1px solid #1e2d47;">
+<p style="color:#c9a84c;font-size:14px;font-weight:700;margin:0 0 10px;">Investment Summary</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Bundle:</td><td style="color:#c5d0dc;font-size:13px;padding:4px 0;">${bundleName}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Principal:</td><td style="color:#c9a84c;font-size:14px;padding:4px 0;font-weight:700;">$${amount}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Daily Target:</td><td style="color:#22c55e;font-size:13px;padding:4px 0;font-weight:700;">${dailyRate}%</td></tr>
+</table>
+</div>
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0;">
+After the 24-hour cycle your principal returns to your main balance and your accrued profit is credited.
+</p>`;
+  return { subject, html: baseLayout(fullName, subject, body, "View Portfolio", DASHBOARD_URL, generateRefCode(userId)) };
+}
+
+function profitEmail(fullName: string, userId: string, amount: string, bundleName: string): { subject: string; html: string } {
+  const subject = "Profit Credited — Future Funds";
+  const body = `
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0 0 16px;">
+Your 24-hour investment cycle has completed and profits have been credited.
+</p>
+<div style="background:#0d1524;border-radius:8px;padding:18px 22px;margin:20px 0;border:1px solid #1e2d47;">
+<p style="color:#c9a84c;font-size:14px;font-weight:700;margin:0 0 10px;">Cycle Result</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Bundle:</td><td style="color:#c5d0dc;font-size:13px;padding:4px 0;">${bundleName}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Profit:</td><td style="color:#22c55e;font-size:16px;padding:4px 0;font-weight:700;">+$${amount}</td></tr>
+</table>
+</div>
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0;">
+You can reinvest from your main balance or request a withdrawal at any time.
+</p>`;
+  return { subject, html: baseLayout(fullName, subject, body, "View Portfolio", DASHBOARD_URL, generateRefCode(userId)) };
+}
+
+function withdrawalEmail(fullName: string, userId: string, amount: string, currency: string, network: string): { subject: string; html: string } {
+  const subject = "Withdrawal Request Received — Future Funds";
+  const body = `
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0 0 16px;">
+Your withdrawal request has been received and is being processed.
+</p>
+<div style="background:#0d1524;border-radius:8px;padding:18px 22px;margin:20px 0;border:1px solid #1e2d47;">
+<p style="color:#c9a84c;font-size:14px;font-weight:700;margin:0 0 10px;">Withdrawal Details</p>
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Amount:</td><td style="color:#c9a84c;font-size:14px;padding:4px 0;font-weight:700;">$${amount}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Currency:</td><td style="color:#c5d0dc;font-size:13px;padding:4px 0;">${currency}</td></tr>
+<tr><td style="color:#6b7d94;font-size:13px;padding:4px 0;">Network:</td><td style="color:#c5d0dc;font-size:13px;padding:4px 0;">${network}</td></tr>
+</table>
+</div>
+<p style="color:#c5d0dc;font-size:15px;line-height:1.7;margin:0;">
+Withdrawals are typically processed within 24-48 hours after manual review.
+</p>`;
+  return { subject, html: baseLayout(fullName, subject, body, "View Dashboard", DASHBOARD_URL, generateRefCode(userId)) };
+}
+
+function customEmail(fullName: string, userId: string, subject: string, contentHtml: string, imageDataUrl?: string): { subject: string; html: string } {
+  const imgBlock = imageDataUrl
+    ? `<div style="margin:0 0 20px;"><img src="${imageDataUrl}" alt="" style="width:100%;max-width:530px;height:auto;border-radius:10px;display:block;" /></div>`
+    : "";
+  const body = `${imgBlock}<div style="color:#c5d0dc;font-size:15px;line-height:1.75;">${contentHtml}</div>`;
+  return { subject, html: baseLayout(fullName, subject, body, "Open Dashboard", DASHBOARD_URL, generateRefCode(userId)) };
+}
 
 async function sendGmail(to: string, subject: string, html: string) {
+
   const smtpHost = "smtp.gmail.com";
   const smtpPort = 465;
 
@@ -380,6 +466,26 @@ serve(async (req) => {
         html = email.html;
         break;
       }
+      case "deposit": {
+        const e = depositEmail(fullName, userId, extra.amount || "0.00", extra.currency);
+        subject = e.subject; html = e.html; break;
+      }
+      case "investment": {
+        const e = investmentEmail(fullName, userId, extra.amount || "0.00", extra.bundleName || "Investment", extra.dailyRate || "0");
+        subject = e.subject; html = e.html; break;
+      }
+      case "profit": {
+        const e = profitEmail(fullName, userId, extra.amount || "0.00", extra.bundleName || "Investment");
+        subject = e.subject; html = e.html; break;
+      }
+      case "withdrawal": {
+        const e = withdrawalEmail(fullName, userId, extra.amount || "0.00", extra.currency || "USDT", extra.network || "");
+        subject = e.subject; html = e.html; break;
+      }
+      case "custom": {
+        const e = customEmail(fullName, userId, extra.subject || "Future Funds", extra.bodyHtml || "", extra.imageDataUrl);
+        subject = e.subject; html = e.html; break;
+      }
       default:
         console.error("[send-email] Invalid email type:", type);
         return new Response(
@@ -387,6 +493,7 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
+
 
     console.log("[send-email] Attempting SMTP send — GMAIL_USER configured:", !!GMAIL_USER);
     await sendGmail(to, subject, html);

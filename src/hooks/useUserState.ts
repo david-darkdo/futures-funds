@@ -38,7 +38,7 @@ export function useUserState(): UserStateData {
       // dialog (e.g. a half-filled payment-proof form) is lost.
       if (isInitial) setLoading(true);
 
-      const [activeRes, pendingRes, demoRes] = await Promise.all([
+      const [activeRes, pendingRes] = await Promise.all([
         supabase
           .from("user_investments")
           .select("id", { count: "exact" })
@@ -49,17 +49,13 @@ export function useUserState(): UserStateData {
           .select("id", { count: "exact" })
           .eq("user_id", userId)
           .eq("status", "pending"),
-        supabase
-          .from("demo_investments")
-          .select("id", { count: "exact" })
-          .eq("user_id", userId),
       ]);
 
       if (cancelled) return;
 
       setActiveInvestmentsCount(activeRes.count ?? activeRes.data?.length ?? 0);
       setPendingPaymentsCount(pendingRes.count ?? pendingRes.data?.length ?? 0);
-      setDemoCount(demoRes.count ?? demoRes.data?.length ?? 0);
+      setDemoCount(0);
       setLoading(false);
       isInitial = false;
     };
@@ -70,8 +66,8 @@ export function useUserState(): UserStateData {
       .channel(`user-investment-state-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_investments', filter: `user_id=eq.${userId}` }, () => fetchState())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'payments', filter: `user_id=eq.${userId}` }, () => fetchState())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'demo_investments', filter: `user_id=eq.${userId}` }, () => fetchState())
       .subscribe();
+
 
     return () => {
       cancelled = true;

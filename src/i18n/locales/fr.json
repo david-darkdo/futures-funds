@@ -246,7 +246,11 @@
     "completeAll": "Veuillez remplir tous les champs",
     "submitted": "Paiement envoyé pour examen !",
     "submitFailed": "Échec de l'envoi du paiement. Réessayez.",
-    "uploadFailed": "Échec du téléversement de la preuve"
+    "uploadFailed": "Échec du téléversement de la preuve",
+    "depositTitle": "Déposer des fonds",
+    "depositDesc": "Ajoutez des fonds à votre solde principal",
+    "depositAmount": "Montant du dépôt (USD)",
+    "depositAmountHint": "Minimum 1 $"
   },
   "withdraw": {
     "title": "Demande de retrait",
@@ -293,21 +297,6 @@
     "logout": "Se déconnecter",
     "loggedOut": "Déconnexion réussie"
   },
-  "demo": {
-    "title": "Essayez avant d'investir",
-    "description": "Découvrez le cycle complet d'investissement avec des fonds simulés.",
-    "createBtn": "Créer un investissement démo",
-    "signupBtn": "S'inscrire et essayer la démo",
-    "noCard": "Aucune carte requise • Accès instantané • Expérience complète",
-    "dialogTitle": "Créer un investissement démo",
-    "dialogDesc": "Vivez la croissance d'un investissement en temps réel avec des fonds simulés.",
-    "standardPlan": "Plan Standard",
-    "amountLabel": "Montant simulé ($)",
-    "amountHint": "Choisissez n'importe quel montant — il s'agit d'une simulation.",
-    "cancel": "Annuler",
-    "start": "Démarrer la démo",
-    "creating": "Création..."
-  },
   "bottomNav": {
     "home": "Accueil",
     "dashboard": "Tableau",
@@ -344,5 +333,158 @@
     "started": "Investissement démarré !",
     "submitting": "Démarrage...",
     "confirm": "Confirmer l'investissement"
+  },
+  "home": {
+    "hero": {
+      "badge": "Investissement Crypto Sûr et Transparent",
+      "titleLine1": "Investissement crypto intelligent.",
+      "titleLine2": "Croissance transparente.",
+      "titleLine3": "Avenir sécurisé.",
+      "subtitle": "Rejoignez des milliers d'investisseurs qui font confiance à FutureFunds pour des investissements crypto sûrs et vérifiés manuellement.",
+      "getStarted": "Commencer",
+      "viewPlans": "Voir les forfaits",
+      "stat1": "Vérification manuelle",
+      "stat2": "Investisseurs actifs",
+      "stat3": "Support disponible"
+    },
+    "why": {
+      "tag": "Pourquoi nous choisir",
+      "titleLead": "Pourquoi",
+      "titleAccent": "FutureFunds",
+      "subtitle": "Nous combinons technologie de pointe et expertise humaine pour offrir une expérience sûre et transparente.",
+      "items": {
+        "security": {
+          "title": "Sécurité bancaire",
+          "desc": "Vos investissements sont protégés par un chiffrement avancé."
+        },
+        "verification": {
+          "title": "Vérification manuelle",
+          "desc": "Chaque paiement est vérifié personnellement par notre équipe."
+        },
+        "curated": {
+          "title": "Opportunités sélectionnées",
+          "desc": "Accédez à des stratégies d'investissement crypto soigneusement choisies."
+        },
+        "risk": {
+          "title": "Gestion des risques",
+          "desc": "Notre équipe surveille les marchés pour protéger vos investissements."
+        }
+      }
+    },
+    "how": {
+      "tag": "Processus simple",
+      "titleLead": "Comment ça",
+      "titleAccent": "marche",
+      "subtitle": "Commencer avec FutureFunds est simple. Suivez ces étapes.",
+      "steps": {
+        "account": {
+          "title": "Créer un compte",
+          "desc": "Inscrivez-vous en quelques secondes avec votre e-mail."
+        },
+        "bundle": {
+          "title": "Choisir un forfait",
+          "desc": "Sélectionnez un forfait qui correspond à vos objectifs."
+        },
+        "pay": {
+          "title": "Payer en crypto",
+          "desc": "Envoyez le paiement à notre adresse sécurisée."
+        },
+        "proof": {
+          "title": "Téléverser la preuve",
+          "desc": "Soumettez votre capture de transaction."
+        },
+        "verify": {
+          "title": "Vérification",
+          "desc": "Notre équipe examine et approuve manuellement."
+        },
+        "grow": {
+          "title": "Commencer à croître",
+          "desc": "Votre tableau de bord s'active et votre parcours commence."
+        }
+      }
+    },
+    "security": {
+      "tag": "Sécurité d'abord",
+      "titleLead": "Votre sécurité est notre",
+      "titleAccent": "priorité",
+      "subtitle": "Nous avons construit FutureFunds avec la sécurité comme priorité absolue.",
+      "badge1": "Chiffrement 256-bit",
+      "badge2": "Conforme SOC 2",
+      "badge3": "RGPD prêt",
+      "items": {
+        "encryption": {
+          "title": "Chiffrement de bout en bout",
+          "desc": "Toutes les données sont chiffrées avec les protocoles standard."
+        },
+        "manual": {
+          "title": "Vérification manuelle",
+          "desc": "Chaque transaction est examinée personnellement."
+        },
+        "infra": {
+          "title": "Infrastructure sécurisée",
+          "desc": "Serveurs d'entreprise avec 99,9 % de disponibilité."
+        },
+        "kyc": {
+          "title": "Conformité KYC",
+          "desc": "Vérification d'identité pour une sécurité accrue."
+        },
+        "noAuto": {
+          "title": "Pas de portefeuilles auto",
+          "desc": "La gestion manuelle empêche les exploits automatisés."
+        },
+        "audit": {
+          "title": "Piste d'audit complète",
+          "desc": "Transparence totale avec journaux détaillés."
+        }
+      }
+    },
+    "cta": {
+      "titleLead": "Prêt à commencer votre",
+      "titleAccent": "parcours d'investissement ?",
+      "subtitle": "Rejoignez des milliers d'investisseurs qui font confiance à FutureFunds.",
+      "primary": "Créer un compte gratuit",
+      "secondary": "Comparer les forfaits",
+      "trust": "Vos données sont protégées par une sécurité bancaire"
+    }
+  },
+  "footer": {
+    "tagline": "Plateforme d'investissement crypto intelligente avec une croissance transparente.",
+    "company": "Entreprise",
+    "legal": "Légal",
+    "support": "Support",
+    "about": "À propos",
+    "how": "Comment ça marche",
+    "security": "Sécurité",
+    "contact": "Contact",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "risk": "Divulgation des risques",
+    "faq": "FAQ",
+    "help": "Centre d'aide",
+    "emailSupport": "Support e-mail",
+    "rights": "Tous droits réservés.",
+    "disclaimer": "L'investissement comporte des risques. Les performances passées ne préjugent pas des résultats futurs."
+  },
+  "adminEmail": {
+    "title": "Gestion des e-mails",
+    "subtitle": "Composez et envoyez des e-mails personnalisés",
+    "recipient": "E-mail du destinataire",
+    "recipientPh": "client@exemple.com",
+    "prompt": "Sujet / consigne",
+    "promptPh": "Décrivez ce que vous souhaitez communiquer...",
+    "subject": "Objet",
+    "subjectPh": "Objet de l'e-mail",
+    "body": "Corps de l'e-mail",
+    "bodyPh": "Contenu (HTML autorisé)",
+    "generate": "Générer avec l'IA",
+    "generating": "Génération...",
+    "send": "Envoyer",
+    "sending": "Envoi...",
+    "sent": "E-mail envoyé !",
+    "failed": "Échec de l'envoi",
+    "generateFailed": "Échec de la génération",
+    "includeImage": "Inclure une image générée",
+    "preview": "Aperçu",
+    "imageGenerated": "Image intégrée générée"
   }
 }

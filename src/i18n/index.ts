@@ -5,12 +5,14 @@ import en from "./locales/en.json";
 import fr from "./locales/fr.json";
 import es from "./locales/es.json";
 import de from "./locales/de.json";
+import pt from "./locales/pt.json";
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
   { code: "fr", label: "Français" },
   { code: "es", label: "Español" },
   { code: "de", label: "Deutsch" },
+  { code: "pt", label: "Português" },
 ] as const;
 
 i18n
@@ -22,6 +24,7 @@ i18n
       fr: { translation: fr },
       es: { translation: es },
       de: { translation: de },
+      pt: { translation: pt },
     },
     fallbackLng: "en",
     supportedLngs: SUPPORTED_LANGUAGES.map((l) => l.code),

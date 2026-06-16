@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { InvestDialog } from "@/components/payments/InvestDialog";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { useBalances } from "@/hooks/useBalances";
+
 
 interface BundlePlan {
   id: string;
@@ -21,6 +23,7 @@ interface BundlePlan {
 }
 
 export function PlansSection() {
+  const { t } = useTranslation();
   const [bundles, setBundles] = useState<BundlePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [investOpen, setInvestOpen] = useState(false);
@@ -29,6 +32,7 @@ export function PlansSection() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const balances = useBalances();
+
 
   useEffect(() => {
     const fetchBundles = async () => {
@@ -59,16 +63,14 @@ export function PlansSection() {
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-gold text-sm font-semibold tracking-wider uppercase mb-4 block">
-            Investment Plans
+            {t("plans.sectionTag")}
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold mb-6">
-            Choose Your <span className="text-gradient-gold">Bundle</span>
+            {t("plans.title")} <span className="text-gradient-gold">{t("plans.titleAccent")}</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Select the investment bundle that aligns with your financial goals.
-            All plans include full transparency and manual verification.
-          </p>
+          <p className="text-muted-foreground text-lg">{t("plans.subtitle")}</p>
         </div>
+
 
         {/* Plans Grid */}
         {loading ? (
@@ -82,7 +84,7 @@ export function PlansSection() {
             {bundles.map((bundle, index) => {
               const isPopular = index === popularIndex;
               const isBestValue = index === bestValueIndex && !isPopular;
-              const badgeLabel = isPopular ? "Popular" : isBestValue ? "Best Value" : null;
+              const badgeLabel = isPopular ? t("plans.popular") : isBestValue ? t("plans.bestValue") : null;
 
               return (
                 <div
@@ -93,7 +95,6 @@ export function PlansSection() {
                       : "border-border bg-card hover:border-gold/30 hover:shadow-gold"
                   }`}
                 >
-                  {/* Ribbon Badge */}
                   {badgeLabel && (
                     <div className="absolute top-0 right-0 overflow-hidden w-28 h-28 pointer-events-none">
                       <div className="absolute top-[18px] right-[-32px] w-[150px] text-center text-xs font-bold py-1.5 bg-gradient-gold text-primary-foreground rotate-45 shadow-md">
@@ -102,44 +103,38 @@ export function PlansSection() {
                     </div>
                   )}
 
-                  {/* Daily Rate - Prominent */}
                   <div className="mb-4">
                     <span className="text-4xl md:text-5xl font-bold text-gradient-gold">
                       {bundle.daily_growth_rate ?? 0.5}%
                     </span>
-                    <span className="text-muted-foreground text-lg ml-2">Daily</span>
+                    <span className="text-muted-foreground text-lg ml-2">{t("plans.daily")}</span>
                   </div>
 
-                  {/* Plan Name */}
-                  <h3 className="text-2xl font-bold uppercase mb-6 tracking-wide">
-                    {bundle.name}
-                  </h3>
+                  <h3 className="text-2xl font-bold uppercase mb-6 tracking-wide">{bundle.name}</h3>
 
-                  {/* Plan Details */}
                   <div className="space-y-4 mb-8 flex-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Minimum Invest</span>
+                      <span className="text-muted-foreground">{t("plans.minInvest")}</span>
                       <span className="font-semibold text-foreground">
                         ${(bundle.min_invest ?? bundle.price_usd).toLocaleString()}
                       </span>
                     </div>
                     <div className="border-t border-border/50" />
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Maximum Invest</span>
+                      <span className="text-muted-foreground">{t("plans.maxInvest")}</span>
                       <span className="font-semibold text-foreground">
                         ${(bundle.max_invest ?? bundle.price_usd * 2).toLocaleString()}
                       </span>
                     </div>
                     <div className="border-t border-border/50" />
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Average Daily</span>
+                      <span className="text-muted-foreground">{t("plans.avgDaily")}</span>
                       <span className="font-semibold text-gold">
                         {bundle.daily_growth_rate ?? 0.5}%
                       </span>
                     </div>
                   </div>
 
-                  {/* CTA Button */}
                   <Button
                     variant={isPopular ? "gold" : "gold-outline"}
                     className="w-full"
@@ -154,20 +149,20 @@ export function PlansSection() {
                       }
                     }}
                   >
-                    {user && balances.mainBalance > 0 ? "Invest" : "Deposit"}
+                    {user && balances.mainBalance > 0 ? t("quickActions.invest") : t("plans.deposit")}
                   </Button>
                 </div>
               );
             })}
           </div>
+
         )}
 
-        {/* Disclaimer */}
         <p className="text-center text-muted-foreground text-sm mt-12 max-w-2xl mx-auto">
-          Investment involves risk. The value of investments can go down as well as up.
-          Past performance is not indicative of future results. All growth values are admin-managed simulations.
+          {t("plans.disclaimer")}
         </p>
       </div>
+
 
       {user && (
         <>
