@@ -12,6 +12,8 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { WhatsAppSupport } from "@/components/dashboard/WhatsAppSupport";
+import { EmailSupport } from "@/components/dashboard/EmailSupport";
+
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function DashboardLayout() {
@@ -174,6 +176,8 @@ export default function DashboardLayout() {
       />
 
       <WhatsAppSupport />
+      <EmailSupport />
+
     </div>
   );
 }
