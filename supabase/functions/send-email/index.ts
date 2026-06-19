@@ -7,8 +7,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const GMAIL_USER = Deno.env.get("GMAIL_USER") || "";
-const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD") || "";
+const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY") || "";
+const FROM_EMAIL = Deno.env.get("SENDGRID_FROM_EMAIL") || "futurefundsrg@gmail.com";
+const FROM_NAME = "Future Funds";
 const LOGO_URL =
   "https://ncmzqvqfmbbntmvswpmt.supabase.co/storage/v1/object/public/email-assets/futurefunds-logo.png";
 const BANNER_URL =
@@ -294,87 +295,35 @@ function customEmail(fullName: string, userId: string, subject: string, contentH
   return { subject, html: baseLayout(fullName, subject, body, "Open Dashboard", DASHBOARD_URL, generateRefCode(userId)) };
 }
 
-async function sendGmail(to: string, subject: string, html: string) {
+async function sendViaSendgrid(to: string, subject: string, html: string) {
+  if (!SENDGRID_API_KEY) {
+    throw new Error("SENDGRID_API_KEY secret is not configured");
+  }
+  console.log("[send-email] SendGrid send →", to, "| subject:", subject, "| from:", FROM_EMAIL);
 
-  const smtpHost = "smtp.gmail.com";
-  const smtpPort = 465;
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SENDGRID_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: FROM_EMAIL, name: FROM_NAME },
+      reply_to: { email: FROM_EMAIL, name: FROM_NAME },
+      subject,
+      content: [{ type: "text/html", value: html }],
+    }),
+  });
 
-  console.log("[send-email] Connecting to SMTP:", smtpHost, smtpPort);
-  console.log("[send-email] FROM:", GMAIL_USER, "| TO:", to);
-  console.log("[send-email] Subject:", subject);
-
-  if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-    throw new Error("GMAIL_USER or GMAIL_APP_PASSWORD secret is not configured");
+  if (res.status === 202) {
+    console.log("[send-email] ✅ SendGrid accepted email for", to);
+    return;
   }
 
-  const conn = await Deno.connectTls({ hostname: smtpHost, port: smtpPort });
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  async function readResponse(): Promise<string> {
-    const buf = new Uint8Array(4096);
-    const n = await conn.read(buf);
-    if (n === null || n === 0) {
-      console.error("[send-email] SMTP connection closed unexpectedly (read returned null)");
-      throw new Error("SMTP connection closed unexpectedly");
-    }
-    const response = decoder.decode(buf.subarray(0, n));
-    console.log("[send-email] SMTP <--", response.trim());
-    return response;
-  }
-
-  async function sendCommand(cmd: string): Promise<string> {
-    const logCmd = cmd.startsWith("AUTH") || cmd === btoa(GMAIL_USER) || cmd === btoa(GMAIL_APP_PASSWORD)
-      ? "[REDACTED]"
-      : cmd;
-    console.log("[send-email] SMTP -->", logCmd);
-    await conn.write(encoder.encode(cmd + "\r\n"));
-    return await readResponse();
-  }
-
-  // Read greeting
-  await readResponse();
-  await sendCommand(`EHLO localhost`);
-
-  // AUTH LOGIN
-  await sendCommand("AUTH LOGIN");
-  await sendCommand(btoa(GMAIL_USER));
-  const authResult = await sendCommand(btoa(GMAIL_APP_PASSWORD));
-  if (!authResult.startsWith("235")) {
-    throw new Error(`SMTP AUTH failed: ${authResult.trim()}`);
-  }
-  console.log("[send-email] SMTP AUTH successful");
-
-  await sendCommand(`MAIL FROM:<${GMAIL_USER}>`);
-  await sendCommand(`RCPT TO:<${to}>`);
-  await sendCommand("DATA");
-
-  // SMTP dot-stuffing: any line starting with "." must be escaped to ".."
-  // to prevent premature end-of-message
-  const dotStuffedHtml = html.replace(/\r?\n\./g, "\r\n..");
-
-  const emailContent = [
-    `From: "Future Funds" <${GMAIL_USER}>`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/html; charset=UTF-8`,
-    `Content-Transfer-Encoding: 7bit`,
-    ``,
-    dotStuffedHtml,
-    `.`,
-  ].join("\r\n");
-
-  await conn.write(encoder.encode(emailContent + "\r\n"));
-  const dataResult = await readResponse();
-  if (!dataResult.startsWith("250")) {
-    throw new Error(`SMTP DATA send failed: ${dataResult.trim()}`);
-  }
-  console.log("[send-email] Email body accepted by SMTP server");
-
-  await sendCommand("QUIT");
-  conn.close();
-  console.log("[send-email] SMTP connection closed — email sent successfully to:", to);
+  const errText = await res.text().catch(() => "");
+  console.error("[send-email] ❌ SendGrid error:", res.status, errText);
+  throw new Error(`SendGrid ${res.status}: ${errText || res.statusText}`);
 }
 
 
@@ -495,8 +444,8 @@ serve(async (req) => {
     }
 
 
-    console.log("[send-email] Attempting SMTP send — GMAIL_USER configured:", !!GMAIL_USER);
-    await sendGmail(to, subject, html);
+    console.log("[send-email] Attempting SendGrid send — key configured:", !!SENDGRID_API_KEY);
+    await sendViaSendgrid(to, subject, html);
     console.log("[send-email] ✅ Email sent successfully to:", to);
 
     return new Response(
