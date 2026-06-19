@@ -59,7 +59,7 @@ serve(async (req) => {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: prompt },
@@ -88,7 +88,7 @@ serve(async (req) => {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-2.5-flash-image-preview",
           messages: [{ role: "user", content: parsed.image_prompt }],
           modalities: ["image", "text"],
         }),
