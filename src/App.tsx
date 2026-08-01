@@ -31,6 +31,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminBundles from "./pages/AdminBundles";
 import AdminProofs from "./pages/AdminProofs";
 import AdminEmails from "./pages/AdminEmails";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 
 
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
               <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
               <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
+              <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
 
 
               <Route path="*" element={<NotFound />} />
