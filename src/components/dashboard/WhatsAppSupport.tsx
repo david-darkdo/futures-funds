@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSetting, DEFAULT_WHATSAPP_NUMBER, toWaLink } from "@/hooks/useAppSettings";
 
-const WHATSAPP_NUMBER = "16232122337";
 const CONNECTED_FLAG = "ff_whatsapp_connected";
 const DEFAULT_MESSAGE = "Hello Future Funds Support, I need assistance with my account.";
 
@@ -20,6 +20,8 @@ export function WhatsAppSupport() {
   const buttonRef = useRef<HTMLDivElement>(null);
   const didDrag = useRef(false);
   const { user } = useAuth();
+  const { value: whatsappSetting, loading: settingLoading } = useAppSetting("whatsapp_number");
+  const waNumber = toWaLink(whatsappSetting) ?? toWaLink(DEFAULT_WHATSAPP_NUMBER);
 
   useEffect(() => {
     if (!user) return;
@@ -66,6 +68,7 @@ export function WhatsAppSupport() {
   };
 
   const handleSend = () => {
+    if (!waNumber) return;
     const userEmail = profile?.email || user?.email || "N/A";
     const userMessage = message.trim() || DEFAULT_MESSAGE;
     const isFirstMessage = !localStorage.getItem(CONNECTED_FLAG);
@@ -83,10 +86,12 @@ export function WhatsAppSupport() {
     }
 
     const encoded = encodeURIComponent(fullMessage);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${waNumber}?text=${encoded}`, "_blank");
     setMessage("");
     setOpen(false);
   };
+
+  if (settingLoading || !waNumber) return null;
 
   return (
     <>

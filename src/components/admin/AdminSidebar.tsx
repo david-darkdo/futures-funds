@@ -35,6 +35,7 @@ const adminSidebarLinks = [
   { name: "Bundles", href: "/admin/bundles", icon: Package },
   { name: "Wallets", href: "/admin/wallets", icon: Wallet },
   { name: "Emails", href: "/admin/emails", icon: Mail },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 
