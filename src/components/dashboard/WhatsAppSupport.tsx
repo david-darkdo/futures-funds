@@ -20,6 +20,8 @@ export function WhatsAppSupport() {
   const buttonRef = useRef<HTMLDivElement>(null);
   const didDrag = useRef(false);
   const { user } = useAuth();
+  const { value: whatsappSetting, loading: settingLoading } = useAppSetting("whatsapp_number");
+  const waNumber = toWaLink(whatsappSetting) ?? toWaLink(DEFAULT_WHATSAPP_NUMBER);
 
   useEffect(() => {
     if (!user) return;
