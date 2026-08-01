@@ -91,6 +91,8 @@ export function WhatsAppSupport() {
     setOpen(false);
   };
 
+  if (settingLoading || !waNumber) return null;
+
   return (
     <>
       {/* Chat Popup */}
