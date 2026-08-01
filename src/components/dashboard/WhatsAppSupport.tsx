@@ -68,6 +68,7 @@ export function WhatsAppSupport() {
   };
 
   const handleSend = () => {
+    if (!waNumber) return;
     const userEmail = profile?.email || user?.email || "N/A";
     const userMessage = message.trim() || DEFAULT_MESSAGE;
     const isFirstMessage = !localStorage.getItem(CONNECTED_FLAG);
@@ -85,7 +86,7 @@ export function WhatsAppSupport() {
     }
 
     const encoded = encodeURIComponent(fullMessage);
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+    window.open(`https://wa.me/${waNumber}?text=${encoded}`, "_blank");
     setMessage("");
     setOpen(false);
   };
