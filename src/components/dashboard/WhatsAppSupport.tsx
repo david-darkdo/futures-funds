@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useAppSetting, DEFAULT_WHATSAPP_NUMBER, toWaLink } from "@/hooks/useAppSettings";
 
-const WHATSAPP_NUMBER = "16232122337";
 const CONNECTED_FLAG = "ff_whatsapp_connected";
 const DEFAULT_MESSAGE = "Hello Future Funds Support, I need assistance with my account.";
 
