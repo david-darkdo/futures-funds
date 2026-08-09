@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_settings: {
+        Row: {
+          created_at: string
+          escalation_keywords: string | null
+          faqs_json: string | null
+          id: string
+          system_prompt: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          escalation_keywords?: string | null
+          faqs_json?: string | null
+          id?: string
+          system_prompt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          escalation_keywords?: string | null
+          faqs_json?: string | null
+          id?: string
+          system_prompt?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -104,6 +131,86 @@ export type Database = {
           name?: string
           price_usd?: number
           slug?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sender_name: string | null
+          sender_type: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sender_name?: string | null
+          sender_type: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sender_name?: string | null
+          sender_type?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          assigned_agent: string | null
+          created_at: string
+          greeted: boolean
+          handoff_sent: boolean
+          id: string
+          last_message: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          visitor_email: string | null
+          visitor_id: string
+          visitor_name: string | null
+        }
+        Insert: {
+          assigned_agent?: string | null
+          created_at?: string
+          greeted?: boolean
+          handoff_sent?: boolean
+          id?: string
+          last_message?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_email?: string | null
+          visitor_id: string
+          visitor_name?: string | null
+        }
+        Update: {
+          assigned_agent?: string | null
+          created_at?: string
+          greeted?: boolean
+          handoff_sent?: boolean
+          id?: string
+          last_message?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          visitor_email?: string | null
+          visitor_id?: string
+          visitor_name?: string | null
         }
         Relationships: []
       }
