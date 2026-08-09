@@ -214,6 +214,33 @@ export type Database = {
         }
         Relationships: []
       }
+      client_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          user_id: string | null
+          visitor_email: string | null
+          visitor_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          user_id?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+        }
+        Relationships: []
+      }
       demo_investments: {
         Row: {
           bundle_id: string
