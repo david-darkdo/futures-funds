@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { TEAM_MEMBERS, ChatSession, ChatMessage } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,24 +17,24 @@ export default function AdminLiveChat() {
   const [replyText, setReplyText] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("Alexander");
   const [submitting, setSubmitting] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     fetchSessions();
-
-    // Live inbox: refresh session list on any new session or message
-    const inbox = supabase
-      .channel("admin_chat_inbox")
-      .on("postgres_changes", { event: "*", schema: "public", table: "chat_sessions" }, () => fetchSessions())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => fetchSessions())
-      .subscribe();
-
-    const poll = setInterval(fetchSessions, 15000);
-
-    return () => {
-      supabase.removeChannel(inbox);
-      clearInterval(poll);
-    };
+    if (Notification.permission === "granted") {
+      setNotificationsEnabled(true);
+    }
   }, []);
+
+  const enableNotifications = async () => {
+    if ("Notification" in window) {
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        setNotificationsEnabled(true);
+        toast.success("Push notifications enabled! You will be alerted when clients text.");
+      }
+    }
+  };
 
   useEffect(() => {
     if (deepSessionId && sessions.length > 0) {
@@ -44,6 +44,34 @@ export default function AdminLiveChat() {
       setActiveSession(sessions[0]);
     }
   }, [deepSessionId, sessions]);
+
+  // Realtime listener for incoming client messages across ALL sessions
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin_all_messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          if (newMsg.sender_type === "user") {
+            toast.info(`💬 New message from ${newMsg.sender_name}: "${newMsg.content.substring(0, 30)}..."`);
+            if (Notification.permission === "granted") {
+              new Notification(`💬 New Client Message (${newMsg.sender_name})`, {
+                body: newMsg.content,
+                icon: "/favicon.ico",
+              });
+            }
+            fetchSessions();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     if (!activeSession) return;
@@ -56,16 +84,16 @@ export default function AdminLiveChat() {
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${activeSession.id}` },
         (payload) => {
           const newMsg = payload.new as ChatMessage;
-          setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]));
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
         }
       )
       .subscribe();
 
-    const poll = setInterval(() => fetchMessages(activeSession.id), 10000);
-
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(poll);
     };
   }, [activeSession?.id]);
 
@@ -129,9 +157,17 @@ export default function AdminLiveChat() {
             <MessageSquare className="w-4 h-4 text-amber-400" />
             Client Chats ({sessions.length})
           </h2>
-          <Button variant="ghost" size="sm" onClick={fetchSessions} className="text-xs h-7 text-slate-400">
-            Refresh
-          </Button>
+          {!notificationsEnabled && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={enableNotifications}
+              className="text-[10px] h-7 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 gap-1"
+            >
+              <BellRing className="w-3 h-3" />
+              Enable Push
+            </Button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto divide-y divide-slate-800/50">

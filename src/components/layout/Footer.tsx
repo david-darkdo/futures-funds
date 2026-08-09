@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { TrendingUp, Mail } from "lucide-react";
-
-const SUPPORT_EMAIL = "futurefundsrg@gmail.com";
+import { TrendingUp } from "lucide-react";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -11,7 +9,6 @@ export function Footer() {
     { name: t("footer.about"), href: "#about" },
     { name: t("footer.how"), href: "#how-it-works" },
     { name: t("footer.security"), href: "#security" },
-    { name: t("footer.contact"), href: `mailto:${SUPPORT_EMAIL}` },
   ];
   const legal = [
     { name: t("footer.privacy"), href: "/privacy" },
@@ -21,7 +18,6 @@ export function Footer() {
   const support = [
     { name: t("footer.faq"), href: "/faq" },
     { name: t("footer.help"), href: "/help" },
-    { name: t("footer.emailSupport"), href: `mailto:${SUPPORT_EMAIL}` },
   ];
 
   return (
@@ -38,15 +34,6 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-muted-foreground text-sm mb-6 max-w-xs">{t("footer.tagline")}</p>
-            <div className="flex gap-4">
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary hover:bg-gold/20 transition-colors"
-                aria-label="Email"
-              >
-                <Mail className="w-5 h-5 text-muted-foreground hover:text-gold" />
-              </a>
-            </div>
           </div>
 
           <div>
