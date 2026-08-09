@@ -1,85 +1,74 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ChatSession, ChatMessage } from "@/types/chat";
+
+const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/live-chat`;
+
+async function callChatFn(payload: Record<string, unknown>) {
+  const res = await fetch(FN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function useLiveChat() {
   const { user } = useAuth();
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const initializing = useRef(false);
 
   const getVisitorId = useCallback(() => {
     let vid = localStorage.getItem("ff_visitor_id");
     if (!vid) {
-      vid = "v_" + Math.random().toString(36).substr(2, 9);
+      vid = "v_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
       localStorage.setItem("ff_visitor_id", vid);
     }
     return vid;
   }, []);
 
+  const mergeMessages = useCallback((incoming: ChatMessage[]) => {
+    setMessages((prev) => {
+      const map = new Map<string, ChatMessage>();
+      [...prev, ...incoming].forEach((m) => map.set(m.id, m));
+      return Array.from(map.values()).sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+    });
+  }, []);
+
   const initSession = useCallback(async () => {
-    const vid = getVisitorId();
+    if (initializing.current) return;
+    initializing.current = true;
     try {
-      const { data: existing } = await supabase
-        .from("chat_sessions")
-        .select("*")
-        .eq("visitor_id", vid)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (existing) {
-        setCurrentSession(existing as ChatSession);
-        fetchMessages(existing.id);
-      } else {
-        const newSessData = {
-          visitor_id: vid,
-          user_id: user?.id || null,
-          visitor_email: user?.email || null,
-          status: "ai_active",
-        };
-
-        const { data: newSess, error } = await supabase
-          .from("chat_sessions")
-          .insert(newSessData as any)
-          .select("*")
-          .single();
-
-        if (!error && newSess) {
-          setCurrentSession(newSess as ChatSession);
-        } else {
-          const fallbackSess: ChatSession = {
-            id: "sess_" + vid,
-            visitor_id: vid,
-            visitor_email: user?.email,
-            status: "ai_active",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          setCurrentSession(fallbackSess);
-        }
+      const data = await callChatFn({
+        action: "init",
+        visitor_id: getVisitorId(),
+        user_id: user?.id || null,
+        visitor_email: user?.email || null,
+        visitor_name: user?.user_metadata?.full_name || user?.email?.split("@")[0] || null,
+      });
+      if (data?.session) {
+        setCurrentSession(data.session as ChatSession);
+        mergeMessages((data.messages || []) as ChatMessage[]);
       }
     } catch (e) {
       console.error("Failed to init chat session", e);
+    } finally {
+      initializing.current = false;
     }
-  }, [user, getVisitorId]);
+  }, [user, getVisitorId, mergeMessages]);
 
-  const fetchMessages = async (sessionId: string) => {
-    try {
-      const { data } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("session_id", sessionId)
-        .order("created_at", { ascending: true });
-      if (data && data.length > 0) {
-        setMessages(data as ChatMessage[]);
-      }
-    } catch (e) {
-      console.warn("Could not fetch messages", e);
-    }
-  };
-
+  // Realtime for agent/admin replies (works for signed-in clients)
   useEffect(() => {
     if (!currentSession?.id) return;
 
@@ -95,91 +84,75 @@ export function useLiveChat() {
         },
         (payload) => {
           const newMsg = payload.new as ChatMessage;
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-        }
+          if (newMsg.sender_type === "agent") mergeMessages([newMsg]);
+        },
       )
       .subscribe();
 
+    // Polling fallback (covers anonymous visitors without realtime read access)
+    const interval = setInterval(async () => {
+      try {
+        const data = await callChatFn({ action: "history", session_id: currentSession.id });
+        if (data?.session) setCurrentSession(data.session as ChatSession);
+        if (data?.messages) {
+          const agentMsgs = (data.messages as ChatMessage[]).filter((m) => m.sender_type === "agent");
+          if (agentMsgs.length) mergeMessages(agentMsgs);
+        }
+      } catch {
+        /* ignore */
+      }
+    }, 8000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
-  }, [currentSession?.id]);
+  }, [currentSession?.id, mergeMessages]);
 
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
-    setLoading(true);
+    const trimmed = content.trim();
+    if (!trimmed) return;
 
-    const sessionId = currentSession?.id || "sess_fallback";
-    const userMsg: ChatMessage = {
-      id: "msg_" + Date.now(),
-      session_id: sessionId,
+    let session = currentSession;
+    if (!session) {
+      await initSession();
+      session = currentSession;
+    }
+
+    const optimistic: ChatMessage = {
+      id: "local_" + Date.now(),
+      session_id: session?.id || "pending",
       sender_type: "user",
       sender_name: user?.email?.split("@")[0] || "Valued Client",
-      content: content.trim(),
+      content: trimmed,
       created_at: new Date().toISOString(),
     };
-
-    // 1. OPTIMISTIC UPDATE: Instantly add user message to feed
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, optimistic]);
+    setLoading(true);
 
     try {
-      // 2. Persist user message to Supabase DB if session exists
-      if (currentSession?.id && !currentSession.id.startsWith("sess_")) {
-        await supabase.from("chat_messages").insert({
-          session_id: currentSession.id,
-          sender_type: "user",
-          sender_name: userMsg.sender_name,
-          content: userMsg.content,
-        } as any);
+      const data = await callChatFn({
+        action: "send",
+        session_id: session?.id,
+        content: trimmed,
+        sender_name: optimistic.sender_name,
+      });
+
+      // swap optimistic message for the stored one
+      if (data?.user_message) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === optimistic.id ? (data.user_message as ChatMessage) : m)),
+        );
       }
 
-      // 3. Generate instant AI response if session status is ai_active
-      if (!currentSession || currentSession.status === "ai_active") {
-        setTimeout(async () => {
-          let aiResponseContent = "";
-          const lower = content.toLowerCase();
-
-          if (lower.includes("withdraw") || lower.includes("payout")) {
-            aiResponseContent = `Thank you for your inquiry regarding withdrawals. You can request a crypto payout anytime via Dashboard -> Withdraw (TRC20, ERC20, BTC, SOL). To ensure we process this promptly, could you confirm your account email and exact transaction details? Alexander and Pamela on our live desk have been notified to review your request.`;
-          } else if (lower.includes("invest") || lower.includes("plan") || lower.includes("bundle")) {
-            aiResponseContent = `Welcome to FutureFunds. To allocate capital into our active futures trading contracts, fund your Main Balance via Deposit, then click Invest under Dashboard or Plans. Would you like assistance selecting the optimal investment tier for your target ROI?`;
-          } else if (lower.includes("deposit") || lower.includes("pay") || lower.includes("crypto")) {
-            aiResponseContent = `To make a crypto deposit, go to Dashboard -> Deposit, choose your preferred currency (USDT, BTC, ETH) and network, and transfer to our verified corporate wallet address. Once uploaded, our treasury team approves your Main Balance immediately.`;
-          } else {
-            aiResponseContent = `Thank you for reaching out to FutureFunds Client Support. I have logged your message directly with Alexander and Pamela on our senior wealth desk. Let us process your request — our management team will follow up with you right here momentarily.`;
-          }
-
-          const aiMsg: ChatMessage = {
-            id: "ai_" + Date.now(),
-            session_id: sessionId,
-            sender_type: "assistant",
-            sender_name: "Futures Funds Copilot",
-            content: aiResponseContent,
-            created_at: new Date().toISOString(),
-          };
-
-          // Optimistically append AI response
-          setMessages((prev) => [...prev, aiMsg]);
-
-          if (currentSession?.id && !currentSession.id.startsWith("sess_")) {
-            await supabase.from("chat_messages").insert({
-              session_id: currentSession.id,
-              sender_type: "assistant",
-              sender_name: "Futures Funds Copilot",
-              content: aiResponseContent,
-            } as any);
-          }
-
-          setLoading(false);
-        }, 1000);
-      } else {
-        setLoading(false);
+      if (data?.reply) {
+        // Human-like typing pause before the reply appears (3 - 4.5 seconds)
+        await wait(3000 + Math.random() * 1500);
+        mergeMessages([data.reply as ChatMessage]);
       }
     } catch (e) {
       console.error("Error in sendMessage", e);
+    } finally {
       setLoading(false);
     }
   };

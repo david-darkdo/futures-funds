@@ -112,9 +112,15 @@ export function ChatConversationView({ session, messages, loading, onBack, onSen
         )}
 
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-amber-400/80 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 w-fit">
-            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-            <span>Processing your request...</span>
+          <div className="flex flex-col items-start space-y-1">
+            <span className="text-[10px] text-slate-400 font-medium px-1">
+              {assignedMember ? assignedMember.name : "Futures Funds Support"}
+            </span>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-xs px-4 py-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80 animate-bounce [animation-delay:-0.3s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80 animate-bounce [animation-delay:-0.15s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80 animate-bounce" />
+            </div>
           </div>
         )}
         <div ref={scrollRef} />
