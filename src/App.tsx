@@ -11,6 +11,7 @@ import { DashboardRoute } from "@/components/auth/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { SupportWidget } from "@/components/chat/SupportWidget";
 import Index from "./pages/Index";
 import Plans from "./pages/Plans";
 import Login from "./pages/Login";
@@ -32,6 +33,8 @@ import AdminBundles from "./pages/AdminBundles";
 import AdminProofs from "./pages/AdminProofs";
 import AdminEmails from "./pages/AdminEmails";
 import AdminSettings from "./pages/AdminSettings";
+import AdminLiveChat from "./pages/AdminLiveChat";
+import AdminAIBrain from "./pages/AdminAIBrain";
 import NotFound from "./pages/NotFound";
 
 
@@ -71,11 +74,14 @@ const App = () => (
               <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
               <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
               <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+              <Route path="/admin/live-chat" element={<AdminRoute><AdminLiveChat /></AdminRoute>} />
+              <Route path="/admin/ai-brain" element={<AdminRoute><AdminAIBrain /></AdminRoute>} />
 
 
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNav />
+            <SupportWidget />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
