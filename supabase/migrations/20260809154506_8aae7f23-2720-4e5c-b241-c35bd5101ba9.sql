@@ -1,0 +1,1 @@
+DELETE FROM public.chat_sessions WHERE visitor_id = 'v_test_smoke1';
