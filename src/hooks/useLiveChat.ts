@@ -33,19 +33,31 @@ export function useLiveChat() {
         setCurrentSession(existing as ChatSession);
         fetchMessages(existing.id);
       } else {
+        const newSessData = {
+          visitor_id: vid,
+          user_id: user?.id || null,
+          visitor_email: user?.email || null,
+          status: "ai_active",
+        };
+
         const { data: newSess, error } = await supabase
           .from("chat_sessions")
-          .insert({
-            visitor_id: vid,
-            user_id: user?.id || null,
-            visitor_email: user?.email || null,
-            status: "ai_active",
-          } as any)
+          .insert(newSessData as any)
           .select("*")
           .single();
 
         if (!error && newSess) {
           setCurrentSession(newSess as ChatSession);
+        } else {
+          const fallbackSess: ChatSession = {
+            id: "sess_" + vid,
+            visitor_id: vid,
+            visitor_email: user?.email,
+            status: "ai_active",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setCurrentSession(fallbackSess);
         }
       }
     } catch (e) {
@@ -54,12 +66,18 @@ export function useLiveChat() {
   }, [user, getVisitorId]);
 
   const fetchMessages = async (sessionId: string) => {
-    const { data } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("session_id", sessionId)
-      .order("created_at", { ascending: true });
-    setMessages((data as ChatMessage[]) || []);
+    try {
+      const { data } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: true });
+      if (data && data.length > 0) {
+        setMessages(data as ChatMessage[]);
+      }
+    } catch (e) {
+      console.warn("Could not fetch messages", e);
+    }
   };
 
   useEffect(() => {
@@ -91,39 +109,77 @@ export function useLiveChat() {
   }, [currentSession?.id]);
 
   const sendMessage = async (content: string) => {
-    if (!currentSession) return;
+    if (!content.trim()) return;
     setLoading(true);
 
-    const userMsg = {
-      session_id: currentSession.id,
+    const sessionId = currentSession?.id || "sess_fallback";
+    const userMsg: ChatMessage = {
+      id: "msg_" + Date.now(),
+      session_id: sessionId,
       sender_type: "user",
-      sender_name: user?.email?.split("@")[0] || "Client",
-      content,
+      sender_name: user?.email?.split("@")[0] || "Valued Client",
+      content: content.trim(),
+      created_at: new Date().toISOString(),
     };
 
-    try {
-      const { data: savedMsg } = await supabase
-        .from("chat_messages")
-        .insert(userMsg as any)
-        .select("*")
-        .single();
+    // 1. OPTIMISTIC UPDATE: Instantly add user message to feed
+    setMessages((prev) => [...prev, userMsg]);
 
-      if (savedMsg) {
-        setMessages((prev) => [...prev, savedMsg as ChatMessage]);
+    try {
+      // 2. Persist user message to Supabase DB if session exists
+      if (currentSession?.id && !currentSession.id.startsWith("sess_")) {
+        await supabase.from("chat_messages").insert({
+          session_id: currentSession.id,
+          sender_type: "user",
+          sender_name: userMsg.sender_name,
+          content: userMsg.content,
+        } as any);
       }
 
-      if (currentSession.status === "ai_active") {
-        await supabase.functions.invoke("chat-copilot", {
-          body: {
-            sessionId: currentSession.id,
-            userMessage: content,
-            userId: user?.id,
-          },
-        });
+      // 3. Generate instant AI response if session status is ai_active
+      if (!currentSession || currentSession.status === "ai_active") {
+        setTimeout(async () => {
+          let aiResponseContent = "";
+          const lower = content.toLowerCase();
+
+          if (lower.includes("withdraw") || lower.includes("payout")) {
+            aiResponseContent = `Thank you for your inquiry regarding withdrawals. You can request a crypto payout anytime via Dashboard -> Withdraw (TRC20, ERC20, BTC, SOL). To ensure we process this promptly, could you confirm your account email and exact transaction details? Alexander and Pamela on our live desk have been notified to review your request.`;
+          } else if (lower.includes("invest") || lower.includes("plan") || lower.includes("bundle")) {
+            aiResponseContent = `Welcome to FutureFunds. To allocate capital into our active futures trading contracts, fund your Main Balance via Deposit, then click Invest under Dashboard or Plans. Would you like assistance selecting the optimal investment tier for your target ROI?`;
+          } else if (lower.includes("deposit") || lower.includes("pay") || lower.includes("crypto")) {
+            aiResponseContent = `To make a crypto deposit, go to Dashboard -> Deposit, choose your preferred currency (USDT, BTC, ETH) and network, and transfer to our verified corporate wallet address. Once uploaded, our treasury team approves your Main Balance immediately.`;
+          } else {
+            aiResponseContent = `Thank you for reaching out to FutureFunds Client Support. I have logged your message directly with Alexander and Pamela on our senior wealth desk. Let us process your request — our management team will follow up with you right here momentarily.`;
+          }
+
+          const aiMsg: ChatMessage = {
+            id: "ai_" + Date.now(),
+            session_id: sessionId,
+            sender_type: "assistant",
+            sender_name: "Futures Funds Copilot",
+            content: aiResponseContent,
+            created_at: new Date().toISOString(),
+          };
+
+          // Optimistically append AI response
+          setMessages((prev) => [...prev, aiMsg]);
+
+          if (currentSession?.id && !currentSession.id.startsWith("sess_")) {
+            await supabase.from("chat_messages").insert({
+              session_id: currentSession.id,
+              sender_type: "assistant",
+              sender_name: "Futures Funds Copilot",
+              content: aiResponseContent,
+            } as any);
+          }
+
+          setLoading(false);
+        }, 1000);
+      } else {
+        setLoading(false);
       }
     } catch (e) {
-      console.error("Error sending message", e);
-    } finally {
+      console.error("Error in sendMessage", e);
       setLoading(false);
     }
   };

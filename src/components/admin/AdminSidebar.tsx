@@ -12,7 +12,9 @@ import {
   X,
   ArrowDownToLine,
   Image as ImageIcon,
-  Mail
+  Mail,
+  MessageSquare,
+  Sparkles
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -27,6 +29,8 @@ interface AdminSidebarProps {
 
 const adminSidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Client Live Chats", href: "/admin/live-chat", icon: MessageSquare },
+  { name: "AI Brain Manager", href: "/admin/ai-brain", icon: Sparkles },
   { name: "Payments", href: "/admin/payments", icon: CreditCard, countKey: "payments" as const },
   { name: "Payment Proofs", href: "/admin/proofs", icon: ImageIcon },
   { name: "Investments", href: "/admin/investments", icon: TrendingUp },
@@ -37,7 +41,6 @@ const adminSidebarLinks = [
   { name: "Emails", href: "/admin/emails", icon: Mail },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
-
 
 export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdrawals }: AdminSidebarProps) {
   const location = useLocation();
@@ -91,7 +94,7 @@ export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdraw
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {adminSidebarLinks.map((link) => {
               const isActive = location.pathname === link.href;
               const count = link.countKey ? getCounts(link.countKey) : 0;
@@ -103,10 +106,10 @@ export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdraw
                   onClick={onClose}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors",
-                    isActive && "bg-secondary text-foreground"
+                    isActive && "bg-secondary text-foreground font-semibold"
                   )}
                 >
-                  <link.icon className="w-5 h-5" />
+                  <link.icon className="w-5 h-5 text-gold" />
                   <span className="font-medium">{link.name}</span>
                   {count > 0 && (
                     <span className="ml-auto px-2 py-0.5 rounded-full bg-gold text-primary-foreground text-xs font-bold">

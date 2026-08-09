@@ -13,7 +13,9 @@ import {
   Package,
   TrendingUp,
   ArrowDownToLine,
-  DollarSign
+  DollarSign,
+  MessageSquare,
+  Sparkles
 } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PaymentsTable } from "@/components/admin/PaymentsTable";
@@ -32,7 +34,6 @@ export default function AdminDashboard() {
 
   const pendingPayments = payments.filter(p => p.status === "pending");
 
-  // Calculate total capital under management
   const totalCapital = useMemo(() => {
     return investments
       .filter(i => i.state === "active")
@@ -61,7 +62,6 @@ export default function AdminDashboard() {
                 {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
               
-              {/* Search */}
               <div className="hidden md:flex relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -71,19 +71,20 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Bell className="w-5 h-5" />
-                {stats.pendingPayments > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-gold" />
-                )}
-              </button>
-              
-              {/* Management Badge */}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium">
-                <span>Management</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <Button variant="gold-outline" size="sm" asChild className="gap-2">
+                <Link to="/admin/live-chat">
+                  <MessageSquare className="w-4 h-4 text-gold" />
+                  Client Live Chats
+                </Link>
+              </Button>
+
+              <Button variant="outline" size="sm" asChild className="gap-2">
+                <Link to="/admin/ai-brain">
+                  <Sparkles className="w-4 h-4 text-gold" />
+                  AI Brain
+                </Link>
+              </Button>
             </div>
           </div>
         </header>
@@ -91,15 +92,24 @@ export default function AdminDashboard() {
         {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
             {loading ? (
               <>
-                {[...Array(5)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-xl" />
                 ))}
               </>
             ) : (
               <>
+                <Link to="/admin/live-chat" className="p-6 rounded-xl bg-card border border-gold/40 hover:border-gold transition-all group">
+                  <div className="flex items-center justify-between mb-4">
+                    <MessageSquare className="w-5 h-5 text-gold group-hover:scale-110 transition-transform" />
+                    <span className="text-xs text-gold font-bold">Live</span>
+                  </div>
+                  <p className="text-2xl font-bold text-gold">Client Chats</p>
+                  <p className="text-sm text-muted-foreground">Open Advisory Desk</p>
+                </Link>
+
                 <div className="p-6 rounded-xl bg-card border border-border">
                   <div className="flex items-center justify-between mb-4">
                     <Users className="w-5 h-5 text-muted-foreground" />
