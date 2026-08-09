@@ -20,6 +20,20 @@ export default function AdminLiveChat() {
 
   useEffect(() => {
     fetchSessions();
+
+    // Live inbox: refresh session list on any new session or message
+    const inbox = supabase
+      .channel("admin_chat_inbox")
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_sessions" }, () => fetchSessions())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => fetchSessions())
+      .subscribe();
+
+    const poll = setInterval(fetchSessions, 15000);
+
+    return () => {
+      supabase.removeChannel(inbox);
+      clearInterval(poll);
+    };
   }, []);
 
   useEffect(() => {
@@ -42,13 +56,16 @@ export default function AdminLiveChat() {
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${activeSession.id}` },
         (payload) => {
           const newMsg = payload.new as ChatMessage;
-          setMessages((prev) => [...prev, newMsg]);
+          setMessages((prev) => (prev.some((m) => m.id === newMsg.id) ? prev : [...prev, newMsg]));
         }
       )
       .subscribe();
 
+    const poll = setInterval(() => fetchMessages(activeSession.id), 10000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(poll);
     };
   }, [activeSession?.id]);
 
