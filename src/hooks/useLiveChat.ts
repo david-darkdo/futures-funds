@@ -109,9 +109,9 @@ export function useLiveChat() {
     };
   }, [currentSession?.id, mergeMessages]);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, attachments: string[] = []) => {
     const trimmed = content.trim();
-    if (!trimmed) return;
+    if (!trimmed && attachments.length === 0) return;
 
     let session = currentSession;
     if (!session) {
@@ -125,6 +125,7 @@ export function useLiveChat() {
       sender_type: "user",
       sender_name: user?.email?.split("@")[0] || "Valued Client",
       content: trimmed,
+      attachments,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
@@ -135,6 +136,7 @@ export function useLiveChat() {
         action: "send",
         session_id: session?.id,
         content: trimmed,
+        attachments,
         sender_name: optimistic.sender_name,
       });
 

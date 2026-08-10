@@ -149,7 +149,12 @@ Deno.serve(async (req) => {
     if (action === "send") {
       const sessionId = String(body.session_id || "");
       const content = String(body.content || "").trim().slice(0, 4000);
-      if (!sessionId || !content) return json({ error: "session_id and content required" }, 400);
+      const attachments: string[] = Array.isArray(body.attachments)
+        ? body.attachments.map((a: unknown) => String(a)).slice(0, 10)
+        : [];
+      if (!sessionId || (!content && attachments.length === 0)) {
+        return json({ error: "session_id and content required" }, 400);
+      }
 
       const { data: session } = await admin.from("chat_sessions").select("*").eq("id", sessionId).maybeSingle();
       if (!session) return json({ error: "session not found" }, 404);
@@ -158,14 +163,14 @@ Deno.serve(async (req) => {
 
       const { data: userMsg, error: insertErr } = await admin
         .from("chat_messages")
-        .insert({ session_id: sessionId, sender_type: "user", sender_name: senderName, content })
+        .insert({ session_id: sessionId, sender_type: "user", sender_name: senderName, content, attachments })
         .select("*")
         .single();
       if (insertErr) return json({ error: insertErr.message }, 500);
 
       await admin
         .from("chat_sessions")
-        .update({ last_message: content, updated_at: new Date().toISOString() })
+        .update({ last_message: content || "\u{1F4F7} Image", updated_at: new Date().toISOString() })
         .eq("id", sessionId);
 
       // Human agent has taken over -> no AI reply.
@@ -216,7 +221,7 @@ Reply with the next chat message only - plain text, 1 to 3 sentences, no markdow
           system,
           (history ?? []).map((m: any) => ({
             role: m.sender_type === "user" ? "user" : "assistant",
-            content: m.content,
+            content: m.content || "[client shared an image]",
           })),
         );
       } catch (e) {
