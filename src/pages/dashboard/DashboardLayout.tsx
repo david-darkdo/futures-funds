@@ -161,6 +161,9 @@ export default function DashboardLayout() {
         </main>
       </div>
 
+      <DashboardWhatsAppButton />
+
+
       <PaymentUploadDialog
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
