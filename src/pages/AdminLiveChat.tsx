@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { TEAM_MEMBERS, ChatSession, ChatMessage } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, BellRing } from "lucide-react";
+import { Send, MessageSquare, BellRing, ArrowLeft, ImagePlus, X, Loader2, Download } from "lucide-react";
+import { uploadChatImages, downloadImage } from "@/lib/chatUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function AdminLiveChat() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const deepSessionId = searchParams.get("sessionId");
 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -18,6 +20,13 @@ export default function AdminLiveChat() {
   const [selectedAgent, setSelectedAgent] = useState("Alexander");
   const [submitting, setSubmitting] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/admin");
+  };
 
   useEffect(() => {
     fetchSessions();
@@ -116,15 +125,21 @@ export default function AdminLiveChat() {
 
   const handleAdminReply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeSession || !replyText.trim()) return;
+    if (!activeSession || (!replyText.trim() && pendingFiles.length === 0)) return;
     setSubmitting(true);
 
     try {
+      let attachments: string[] = [];
+      if (pendingFiles.length) {
+        attachments = await uploadChatImages(pendingFiles, activeSession.id);
+      }
+
       const { error: msgErr } = await supabase.from("chat_messages").insert({
         session_id: activeSession.id,
         sender_type: "agent",
         sender_name: selectedAgent,
         content: replyText.trim(),
+        attachments,
       } as any);
 
       if (msgErr) throw msgErr;
@@ -140,6 +155,8 @@ export default function AdminLiveChat() {
 
       toast.success(`Message sent as ${selectedAgent}. AI paused for this client.`);
       setReplyText("");
+      setPendingFiles([]);
+      if (fileRef.current) fileRef.current.value = "";
       fetchSessions();
     } catch (e: any) {
       toast.error("Failed to send message");
@@ -153,10 +170,19 @@ export default function AdminLiveChat() {
       {/* Sessions Sidebar */}
       <div className="w-80 border-r border-slate-800 bg-slate-900/50 flex flex-col">
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="font-semibold text-sm text-white flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-amber-400" />
-            Client Chats ({sessions.length})
-          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBack}
+              aria-label="Go back"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <h2 className="font-semibold text-sm text-white flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-amber-400" />
+              Client Chats ({sessions.length})
+            </h2>
+          </div>
           {!notificationsEnabled && (
             <Button
               variant="outline"
@@ -255,6 +281,29 @@ export default function AdminLiveChat() {
                     }`}
                   >
                     {m.content}
+                    {!!m.attachments?.length && (
+                      <div className={`grid gap-1.5 ${m.content ? "mt-2" : ""} ${m.attachments.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                        {m.attachments.map((url, i) => (
+                          <div key={i} className="relative group/img">
+                            <img
+                              src={url}
+                              alt="Chat attachment"
+                              loading="lazy"
+                              onClick={() => window.open(url, "_blank")}
+                              className="rounded-lg max-h-52 w-full object-cover cursor-pointer"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => downloadImage(url, `client-image-${i + 1}.jpg`)}
+                              className="absolute top-1.5 right-1.5 bg-slate-950/80 text-white rounded-md p-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                              aria-label="Download image"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -262,7 +311,45 @@ export default function AdminLiveChat() {
           </div>
 
           {/* Reply Form */}
-          <form onSubmit={handleAdminReply} className="p-4 border-t border-slate-800 bg-slate-900/90 flex gap-2">
+          <form onSubmit={handleAdminReply} className="p-4 border-t border-slate-800 bg-slate-900/90 space-y-2">
+            {pendingFiles.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {pendingFiles.map((f, i) => (
+                  <div key={i} className="relative">
+                    <img src={URL.createObjectURL(f)} alt={f.name} className="w-14 h-14 rounded-lg object-cover border border-slate-700" />
+                    <button
+                      type="button"
+                      onClick={() => setPendingFiles((p) => p.filter((_, idx) => idx !== i))}
+                      className="absolute -top-1.5 -right-1.5 bg-slate-800 border border-slate-600 rounded-full p-0.5 text-slate-300"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => {
+                const files = Array.from(e.target.files || []);
+                if (files.length) setPendingFiles((p) => [...p, ...files].slice(0, 6));
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => fileRef.current?.click()}
+              className="shrink-0 text-amber-400 hover:text-amber-300 hover:bg-slate-800"
+              aria-label="Attach images"
+            >
+              <ImagePlus className="w-4 h-4" />
+            </Button>
             <Input
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
@@ -271,12 +358,13 @@ export default function AdminLiveChat() {
             />
             <Button
               type="submit"
-              disabled={submitting || !replyText.trim()}
+              disabled={submitting || (!replyText.trim() && pendingFiles.length === 0)}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-medium text-xs gap-2"
             >
-              <Send className="w-3.5 h-3.5" />
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               Send as {selectedAgent}
             </Button>
+            </div>
           </form>
         </div>
       ) : (
