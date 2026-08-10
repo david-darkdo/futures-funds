@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
+import { uploadChatImages, downloadImage } from "@/lib/chatUpload";
+import { toast } from "sonner";
 import { TEAM_MEMBERS, ChatMessage, ChatSession } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,22 +11,41 @@ interface Props {
   messages: ChatMessage[];
   loading: boolean;
   onBack: () => void;
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, attachments?: string[]) => void;
 }
 
 export function ChatConversationView({ session, messages, loading, onBack, onSendMessage }: Props) {
   const [text, setText] = useState("");
+  const [pending, setPending] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
-    onSendMessage(text.trim());
+    if (!text.trim() && pending.length === 0) return;
+
+    let urls: string[] = [];
+    if (pending.length) {
+      setUploading(true);
+      try {
+        urls = await uploadChatImages(pending, session?.id || "guest");
+      } catch {
+        toast.error("Could not upload image. Please try again.");
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    onSendMessage(text.trim(), urls);
     setText("");
+    setPending([]);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const assignedMember = TEAM_MEMBERS.find((m) => m.name.toLowerCase() === session?.assigned_agent?.toLowerCase());
@@ -102,6 +123,20 @@ export function ChatConversationView({ session, messages, loading, onBack, onSen
                   }`}
                 >
                   {msg.content}
+                  {!!msg.attachments?.length && (
+                    <div className={`grid gap-1.5 ${msg.content ? "mt-2" : ""} ${msg.attachments.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                      {msg.attachments.map((url, i) => (
+                        <img
+                          key={i}
+                          src={url}
+                          alt="Shared attachment"
+                          loading="lazy"
+                          onClick={() => downloadImage(url, `futures-funds-${i + 1}.jpg`)}
+                          className="rounded-lg max-h-44 w-full object-cover cursor-pointer"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <span className="text-[9px] text-slate-500 px-1">
                   {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -127,7 +162,45 @@ export function ChatConversationView({ session, messages, loading, onBack, onSen
       </div>
 
       {/* Input Composer */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800 bg-slate-900/90 backdrop-blur flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800 bg-slate-900/90 backdrop-blur space-y-2">
+        {pending.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {pending.map((f, i) => (
+              <div key={i} className="relative">
+                <img src={URL.createObjectURL(f)} alt={f.name} className="w-14 h-14 rounded-lg object-cover border border-slate-700" />
+                <button
+                  type="button"
+                  onClick={() => setPending((p) => p.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1.5 -right-1.5 bg-slate-800 border border-slate-600 rounded-full p-0.5 text-slate-300"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length) setPending((p) => [...p, ...files].slice(0, 6));
+          }}
+        />
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          onClick={() => fileRef.current?.click()}
+          className="shrink-0 h-9 w-9 text-amber-400 hover:text-amber-300 hover:bg-slate-800"
+          aria-label="Attach images"
+        >
+          <ImagePlus className="w-5 h-5" />
+        </Button>
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -137,11 +210,12 @@ export function ChatConversationView({ session, messages, loading, onBack, onSen
         <Button
           type="submit"
           size="icon"
-          disabled={!text.trim() || loading}
+          disabled={(!text.trim() && pending.length === 0) || loading || uploading}
           className="bg-amber-500 hover:bg-amber-400 text-slate-950 shrink-0 h-9 w-9"
         >
-          <Send className="w-4 h-4" />
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </Button>
+        </div>
       </form>
     </div>
   );
