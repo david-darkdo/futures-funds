@@ -136,6 +136,7 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          attachments: string[]
           content: string
           created_at: string
           id: string
@@ -144,6 +145,7 @@ export type Database = {
           session_id: string
         }
         Insert: {
+          attachments?: string[]
           content: string
           created_at?: string
           id?: string
@@ -152,6 +154,7 @@ export type Database = {
           session_id: string
         }
         Update: {
+          attachments?: string[]
           content?: string
           created_at?: string
           id?: string

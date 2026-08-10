@@ -33,7 +33,9 @@ export interface ChatMessage {
   sender_name: string;
   sender_avatar?: string;
   content: string;
+  attachments?: string[] | null;
   created_at: string;
+
 }
 
 export interface ChatSession {
