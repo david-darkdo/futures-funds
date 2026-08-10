@@ -12,6 +12,8 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { DashboardWhatsAppButton } from "@/components/dashboard/DashboardWhatsAppButton";
+
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
