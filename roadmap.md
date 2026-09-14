@@ -1,0 +1,5 @@
+- [ ] Secure financial columns and chat-upload access
+- [ ] Add atomic investment management and settlement actions
+- [ ] Connect Investment Management controls
+- [ ] Build User State Management and audit/notification views
+- [ ] Reconcile dashboard data and validate critical flows
