@@ -1,0 +1,14 @@
+REVOKE ALL ON FUNCTION public.admin_apply_growth(uuid, numeric, text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_set_investment_state(uuid, text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_approve_withdrawal(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_reject_withdrawal(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_set_investing_frozen(uuid, boolean) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.admin_set_user_status(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.require_management() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_apply_growth(uuid, numeric, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_investment_state(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_approve_withdrawal(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_reject_withdrawal(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_investing_frozen(uuid, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_set_user_status(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.require_management() TO authenticated;
