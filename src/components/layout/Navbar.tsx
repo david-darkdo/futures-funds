@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +48,7 @@ export function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
             <Button variant="ghost" asChild>
               <Link to="/login">{t("nav.signIn")}</Link>
@@ -82,7 +84,11 @@ export function Navbar() {
                 {link.name}
               </a>
             ))}
-            <div className="flex flex-col gap-2 pt-4 border-t border-border">
+            <div className="flex items-center justify-between py-2 border-t border-border">
+              <span className="text-sm text-muted-foreground">{t("nav.theme", "Theme")}</span>
+              <ThemeToggle />
+            </div>
+            <div className="flex flex-col gap-2 pt-2 border-t border-border">
               <Button variant="ghost" asChild className="justify-start">
                 <Link to="/login">{t("nav.signIn")}</Link>
               </Button>
