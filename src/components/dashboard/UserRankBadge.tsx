@@ -20,20 +20,20 @@ export function UserRankBadge({
       case "gold":
         return {
           label: "Gold VIP",
-          badgeClass: "bg-gold/15 text-gold border-gold/40 hover:bg-gold/25",
+          badgeClass: "bg-gold/15 text-primary dark:text-gold border-gold/50 hover:bg-gold/25",
           icon: Sparkles,
         };
       case "silver":
         return {
           label: "Silver Elite",
-          badgeClass: "bg-slate-300/15 text-slate-200 border-slate-400/40 hover:bg-slate-300/25",
+          badgeClass: "bg-slate-300/40 text-slate-800 dark:text-slate-200 border-slate-500/50 dark:border-slate-400/40 hover:bg-slate-300/50",
           icon: ShieldCheck,
         };
       case "bronze":
       default:
         return {
           label: "Bronze Member",
-          badgeClass: "bg-amber-700/15 text-amber-500 border-amber-600/40 hover:bg-amber-700/25",
+          badgeClass: "bg-amber-700/15 text-amber-900 dark:text-amber-500 border-amber-600/50 hover:bg-amber-700/25",
           icon: Award,
         };
     }
