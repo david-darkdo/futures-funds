@@ -12,6 +12,10 @@ interface Profile {
   investing_frozen?: boolean | null;
   main_balance?: number | null;
   profit_balance?: number | null;
+  calculated_rank?: string;
+  manual_rank?: string | null;
+  effective_rank?: string;
+  rank_updated_at?: string | null;
 }
 
 interface Bundle {
@@ -79,6 +83,13 @@ interface UserInvestment {
   growth_percentage: number;
   admin_note: string | null;
   last_updated_by: string | null;
+  matures_at: string | null;
+  paused_at?: string | null;
+  paused_by?: string | null;
+  pause_reason?: string | null;
+  completed_at?: string | null;
+  completed_by?: string | null;
+  completion_reason?: string | null;
   created_at: string;
   updated_at: string;
   profile?: Profile;
@@ -247,12 +258,12 @@ export function useAdminData() {
   };
 
   const toggleInvestingFreeze = async (userId: string, frozen: boolean) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ investing_frozen: frozen, updated_at: new Date().toISOString() })
-      .eq("id", userId);
+    const { error } = await supabase.rpc("admin_set_investing_frozen", {
+      _user_id: userId,
+      _frozen: frozen,
+    });
     if (error) {
-      toast.error("Failed to update freeze state");
+      toast.error(error.message || "Failed to update freeze state");
       return false;
     }
     toast.success(frozen ? "Investing frozen for this user" : "Investing unfrozen");
@@ -281,54 +292,14 @@ export function useAdminData() {
   };
 
   const approveWithdrawal = async (withdrawalId: string, txid?: string) => {
-    // Get withdrawal details
-    const withdrawal = withdrawals.find((w) => w.id === withdrawalId);
-    if (!withdrawal) {
-      toast.error("Withdrawal not found");
-      return false;
-    }
-
-    const { error } = await supabase
-      .from("withdrawals")
-      .update({
-        status: "approved",
-        txid: txid || null,
-        admin_id: user?.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", withdrawalId);
+    const { error } = await supabase.rpc("admin_approve_withdrawal", {
+      _withdrawal_id: withdrawalId,
+      _txid: txid || undefined,
+    });
 
     if (error) {
-      toast.error("Failed to approve withdrawal");
+      toast.error(error.message || "Failed to approve withdrawal");
       return false;
-    }
-
-    // Get user's active investment to get current balance
-    const userInvestment = investments.find(
-      (i) => i.user_id === withdrawal.user_id && i.state === "active"
-    );
-    
-    if (userInvestment) {
-      const newBalance = userInvestment.current_value - withdrawal.amount;
-      
-      // Update investment current value
-      await supabase
-        .from("user_investments")
-        .update({ 
-          current_value: newBalance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userInvestment.id);
-
-      // Log withdrawal transaction
-      await supabase.from("transactions").insert({
-        user_id: withdrawal.user_id,
-        investment_id: userInvestment.id,
-        type: "withdrawal",
-        amount: withdrawal.amount,
-        balance_after: newBalance,
-        description: `Withdrawal processed - ${withdrawal.currency} to ${withdrawal.network}`,
-      });
     }
 
     toast.success("Withdrawal approved successfully");
@@ -337,18 +308,13 @@ export function useAdminData() {
   };
 
   const rejectWithdrawal = async (withdrawalId: string, note?: string) => {
-    const { error } = await supabase
-      .from("withdrawals")
-      .update({
-        status: "rejected",
-        admin_note: note || "Withdrawal rejected by management",
-        admin_id: user?.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", withdrawalId);
+    const { error } = await supabase.rpc("admin_reject_withdrawal", {
+      _withdrawal_id: withdrawalId,
+      _note: note || undefined,
+    });
 
     if (error) {
-      toast.error("Failed to reject withdrawal");
+      toast.error(error.message || "Failed to reject withdrawal");
       return false;
     }
 
@@ -406,13 +372,13 @@ export function useAdminData() {
   };
 
   const updateUserStatus = async (userId: string, status: string) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", userId);
+    const { error } = await supabase.rpc("admin_set_user_status", {
+      _user_id: userId,
+      _status: status,
+    });
 
     if (error) {
-      toast.error("Failed to update user status");
+      toast.error(error.message || "Failed to update user status");
       return false;
     }
 
@@ -492,67 +458,103 @@ export function useAdminData() {
     changeType: "growth" | "drawdown",
     note?: string
   ) => {
-    // Get current investment
-    const investment = investments.find((i) => i.id === investmentId);
-    if (!investment) {
-      toast.error("Investment not found");
-      return false;
-    }
-
-    const balanceBefore = investment.current_value;
-    const multiplier = changeType === "growth" 
-      ? 1 + percentageChange / 100 
-      : 1 - percentageChange / 100;
-    const balanceAfter = balanceBefore * multiplier;
-    const newGrowthPercentage = ((balanceAfter - investment.initial_amount) / investment.initial_amount) * 100;
-    const amountChange = Math.abs(balanceAfter - balanceBefore);
-
-    // Update investment
-    const { error: updateError } = await supabase
-      .from("user_investments")
-      .update({
-        current_value: balanceAfter,
-        growth_percentage: newGrowthPercentage,
-        admin_note: note || null,
-        last_updated_by: user?.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", investmentId);
-
-    if (updateError) {
-      toast.error("Failed to apply growth");
-      return false;
-    }
-
-    // Log the change in investment_growth_logs
-    const { error: logError } = await supabase.from("investment_growth_logs").insert({
-      investment_id: investmentId,
-      admin_id: user?.id,
-      change_type: changeType,
-      percentage_change: percentageChange,
-      balance_before: balanceBefore,
-      balance_after: balanceAfter,
-      admin_note: note || null,
+    const { error } = await supabase.rpc("admin_apply_growth", {
+      _investment_id: investmentId,
+      _percentage_change: percentageChange,
+      _change_type: changeType,
+      _note: note || undefined,
     });
 
-    if (logError) {
-      console.error("Failed to log growth change:", logError);
+    if (error) {
+      toast.error(error.message || "Failed to apply adjustment");
+      return false;
     }
-
-    // Log transaction for user history
-    await supabase.from("transactions").insert({
-      user_id: investment.user_id,
-      investment_id: investmentId,
-      type: changeType,
-      amount: amountChange,
-      percentage_change: percentageChange,
-      balance_after: balanceAfter,
-      description: changeType === "growth" 
-        ? `Company Performance Update: +${percentageChange}%`
-        : `Company Performance Update: -${percentageChange}%`,
-    });
 
     toast.success(`${changeType === "growth" ? "Growth" : "Drawdown"} applied successfully`);
+    fetchData();
+    return true;
+  };
+
+  const settleInvestment = async (investmentId: string, reason?: string) => {
+    const { data, error } = await supabase.rpc("settle_investment", {
+      _investment_id: investmentId,
+      _reason: reason || undefined,
+    });
+
+    if (error) {
+      if (error.code === "PGRST202") {
+        const fallback = await supabase.rpc("complete_matured_investments");
+        if (!fallback.error) {
+          toast.success("Investment processed via maturity completion engine");
+          fetchData();
+          return true;
+        }
+      }
+      toast.error(error.message || "Failed to settle investment");
+      return false;
+    }
+
+    const res = data as any;
+    if (res?.code === "already_completed") {
+      toast.info(res.message || "Investment is already completed");
+      fetchData();
+      return true;
+    }
+
+    toast.success(`Settlement completed: $${res?.principal ?? 0} principal + $${res?.profit ?? 0} profit returned`);
+    fetchData();
+    return true;
+  };
+
+  const pauseInvestment = async (investmentId: string, reason?: string) => {
+    const { error } = await supabase.rpc("admin_pause_investment", {
+      _investment_id: investmentId,
+      _reason: reason || undefined,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to pause investment");
+      return false;
+    }
+
+    toast.success("Investment paused successfully");
+    fetchData();
+    return true;
+  };
+
+  const resumeInvestment = async (investmentId: string, reason?: string) => {
+    const { error } = await supabase.rpc("admin_resume_investment", {
+      _investment_id: investmentId,
+      _reason: reason || undefined,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to resume investment");
+      return false;
+    }
+
+    toast.success("Investment resumed — maturity date extended");
+    fetchData();
+    return true;
+  };
+
+  const adjustInvestmentRate = async (
+    investmentId: string,
+    newPercentage: number,
+    reason: string
+  ) => {
+    const { error } = await supabase.rpc("admin_adjust_investment_rate", {
+      _investment_id: investmentId,
+      _new_percentage: newPercentage,
+      _reason: reason,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to adjust rate");
+      return false;
+    }
+
+    toast.success("Effective growth rate updated");
     fetchData();
     return true;
   };
@@ -562,24 +564,119 @@ export function useAdminData() {
     state: "active" | "paused" | "completed",
     note?: string
   ) => {
-    const { error } = await supabase
-      .from("user_investments")
-      .update({
-        state,
-        admin_note: note || null,
-        last_updated_by: user?.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", investmentId);
+    if (state === "completed") {
+      return settleInvestment(investmentId, note);
+    }
+    if (state === "paused") {
+      return pauseInvestment(investmentId, note);
+    }
+    if (state === "active") {
+      return resumeInvestment(investmentId, note);
+    }
+    return false;
+  };
+
+  const adjustUserBalance = async (
+    userId: string,
+    amount: number,
+    type: "add" | "deduct",
+    reason: string
+  ) => {
+    const { error } = await supabase.rpc("admin_adjust_user_balance", {
+      _user_id: userId,
+      _amount: amount,
+      _type: type,
+      _reason: reason,
+    });
 
     if (error) {
-      toast.error("Failed to update investment state");
+      toast.error(error.message || "Failed to adjust balance");
       return false;
     }
 
-    toast.success(`Investment state updated to ${state}`);
+    toast.success(`Balance adjusted: ${type === "add" ? "+$" : "-$"}${amount}`);
     fetchData();
     return true;
+  };
+
+  const adjustUserProfit = async (
+    userId: string,
+    amount: number,
+    type: "add" | "deduct",
+    reason: string
+  ) => {
+    const { error } = await supabase.rpc("admin_adjust_user_profit", {
+      _user_id: userId,
+      _amount: amount,
+      _type: type,
+      _reason: reason,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to adjust profit");
+      return false;
+    }
+
+    toast.success(`Profit balance adjusted: ${type === "add" ? "+$" : "-$"}${amount}`);
+    fetchData();
+    return true;
+  };
+
+  const setUserRank = async (
+    userId: string,
+    manualRank: string | null,
+    reason: string
+  ) => {
+    const { error } = await supabase.rpc("admin_set_user_rank", {
+      _user_id: userId,
+      _manual_rank: manualRank,
+      _reason: reason,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to update user rank");
+      return false;
+    }
+
+    toast.success("User rank updated successfully");
+    fetchData();
+    return true;
+  };
+
+  const sendNotification = async (
+    userId: string,
+    title: string,
+    message: string,
+    type: string = "management"
+  ) => {
+    const { error } = await supabase.rpc("send_user_notification", {
+      _recipient_id: userId,
+      _title: title,
+      _message: message,
+      _type: type,
+    });
+
+    if (error) {
+      toast.error(error.message || "Failed to send notification");
+      return false;
+    }
+
+    toast.success("Notification sent to user");
+    return true;
+  };
+
+  const processAllMatured = async () => {
+    const { data, error } = await supabase.rpc("process_all_matured_investments");
+
+    if (error) {
+      toast.error(error.message || "Failed to process matured investments");
+      return 0;
+    }
+
+    const count = typeof data === "number" ? data : 0;
+    toast.success(`Processed ${count} matured investment${count === 1 ? "" : "s"}`);
+    fetchData();
+    return count;
   };
 
   return {
@@ -605,6 +702,15 @@ export function useAdminData() {
     updateBundle,
     deleteBundle,
     applyGrowth,
+    settleInvestment,
+    pauseInvestment,
+    resumeInvestment,
+    adjustInvestmentRate,
     updateInvestmentState,
+    adjustUserBalance,
+    adjustUserProfit,
+    setUserRank,
+    sendNotification,
+    processAllMatured,
   };
 }
