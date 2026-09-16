@@ -26,7 +26,7 @@ export type Database = {
         }
         Insert: {
           action_type: string
-          admin_id: string
+          admin_id?: string
           created_at?: string
           details?: Json | null
           id?: string
@@ -289,7 +289,7 @@ export type Database = {
           percentage_change: number
         }
         Insert: {
-          admin_id: string
+          admin_id?: string
           admin_note?: string | null
           balance_after: number
           balance_before: number
@@ -314,6 +314,50 @@ export type Database = {
           {
             foreignKeyName: "investment_growth_logs_investment_id_fkey"
             columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "user_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      management_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          previous_value: Json | null
+          reason: string | null
+          target_investment_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          reason?: string | null
+          target_investment_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          reason?: string | null
+          target_investment_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "management_audit_log_target_investment_id_fkey"
+            columns: ["target_investment_id"]
             isOneToOne: false
             referencedRelation: "user_investments"
             referencedColumns: ["id"]
@@ -533,6 +577,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          read: boolean
+          recipient_user_id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          read?: boolean
+          recipient_user_id: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          read?: boolean
+          recipient_user_id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -634,6 +717,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_apply_growth: {
+        Args: {
+          _change_type: string
+          _investment_id: string
+          _note?: string
+          _percentage_change: number
+        }
+        Returns: Json
+      }
+      admin_approve_withdrawal: {
+        Args: { _txid?: string; _withdrawal_id: string }
+        Returns: Json
+      }
+      admin_reject_withdrawal: {
+        Args: { _note?: string; _withdrawal_id: string }
+        Returns: Json
+      }
+      admin_set_investing_frozen: {
+        Args: { _frozen: boolean; _user_id: string }
+        Returns: Json
+      }
+      admin_set_investment_state: {
+        Args: { _investment_id: string; _note?: string; _state: string }
+        Returns: Json
+      }
+      admin_set_user_status: {
+        Args: { _status: string; _user_id: string }
+        Returns: Json
+      }
       complete_matured_investments: { Args: never; Returns: number }
       has_role: {
         Args: {
@@ -647,6 +759,7 @@ export type Database = {
         Returns: string
       }
       mask_email: { Args: { email: string }; Returns: string }
+      require_management: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
