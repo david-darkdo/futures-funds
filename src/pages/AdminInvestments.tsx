@@ -2,19 +2,27 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Menu, X, Bell, Search, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Menu, X, Bell, Search, TrendingUp, CheckCircle2, RotateCw } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { InvestmentsTable } from "@/components/admin/InvestmentsTable";
 import { useAdminData } from "@/hooks/useAdminData";
+import { cn } from "@/lib/utils";
 
 export default function AdminInvestments() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isProcessingMatured, setIsProcessingMatured] = useState(false);
   const {
     investments,
     stats,
     loading,
     applyGrowth,
+    settleInvestment,
+    pauseInvestment,
+    resumeInvestment,
+    adjustInvestmentRate,
     updateInvestmentState,
+    processAllMatured,
   } = useAdminData();
 
   const activeInvestments = investments.filter((i) => i.state === "active");
@@ -66,14 +74,31 @@ export default function AdminInvestments() {
         </header>
 
         <main className="flex-1 p-4 lg:p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-gold" />
-              Investment Management
-            </h1>
-            <p className="text-muted-foreground">
-              Apply growth or drawdown percentages to user investments
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <TrendingUp className="w-6 h-6 text-gold" />
+                Investment Management
+              </h1>
+              <p className="text-muted-foreground">
+                Apply growth or drawdown percentages, pause/resume, and settle investments
+              </p>
+            </div>
+            <Button
+              onClick={async () => {
+                setIsProcessingMatured(true);
+                try {
+                  await processAllMatured();
+                } finally {
+                  setIsProcessingMatured(false);
+                }
+              }}
+              disabled={isProcessingMatured}
+              className="bg-gold hover:bg-gold-light text-navy font-semibold gap-2 self-start sm:self-auto"
+            >
+              <RotateCw className={cn("w-4 h-4", isProcessingMatured && "animate-spin")} />
+              Process Matured Investments
+            </Button>
           </div>
 
           {/* Stats Summary */}
@@ -122,6 +147,10 @@ export default function AdminInvestments() {
                   <InvestmentsTable
                     investments={activeInvestments}
                     onApplyGrowth={applyGrowth}
+                    onSettle={settleInvestment}
+                    onPause={pauseInvestment}
+                    onResume={resumeInvestment}
+                    onAdjustRate={adjustInvestmentRate}
                     onUpdateState={updateInvestmentState}
                   />
                 </TabsContent>
@@ -130,6 +159,10 @@ export default function AdminInvestments() {
                   <InvestmentsTable
                     investments={pausedInvestments}
                     onApplyGrowth={applyGrowth}
+                    onSettle={settleInvestment}
+                    onPause={pauseInvestment}
+                    onResume={resumeInvestment}
+                    onAdjustRate={adjustInvestmentRate}
                     onUpdateState={updateInvestmentState}
                   />
                 </TabsContent>
@@ -138,6 +171,10 @@ export default function AdminInvestments() {
                   <InvestmentsTable
                     investments={completedInvestments}
                     onApplyGrowth={applyGrowth}
+                    onSettle={settleInvestment}
+                    onPause={pauseInvestment}
+                    onResume={resumeInvestment}
+                    onAdjustRate={adjustInvestmentRate}
                     onUpdateState={updateInvestmentState}
                   />
                 </TabsContent>
@@ -146,6 +183,10 @@ export default function AdminInvestments() {
                   <InvestmentsTable
                     investments={investments}
                     onApplyGrowth={applyGrowth}
+                    onSettle={settleInvestment}
+                    onPause={pauseInvestment}
+                    onResume={resumeInvestment}
+                    onAdjustRate={adjustInvestmentRate}
                     onUpdateState={updateInvestmentState}
                   />
                 </TabsContent>
