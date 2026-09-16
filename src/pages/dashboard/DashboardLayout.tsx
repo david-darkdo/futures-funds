@@ -15,6 +15,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DashboardWhatsAppButton } from "@/components/dashboard/DashboardWhatsAppButton";
 import { UserNotificationBell } from "@/components/dashboard/UserNotificationBell";
 import { UserRankBadge } from "@/components/dashboard/UserRankBadge";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 
 export default function DashboardLayout() {
@@ -126,6 +127,7 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               <UserNotificationBell />
               <div className="hidden sm:flex items-center gap-2">
                 <LanguageSwitcher />
