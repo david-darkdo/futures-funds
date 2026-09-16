@@ -13,6 +13,8 @@ import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DashboardWhatsAppButton } from "@/components/dashboard/DashboardWhatsAppButton";
+import { UserNotificationBell } from "@/components/dashboard/UserNotificationBell";
+import { UserRankBadge } from "@/components/dashboard/UserRankBadge";
 
 
 export default function DashboardLayout() {
@@ -113,14 +115,18 @@ export default function DashboardLayout() {
                 {loading ? (
                   <Skeleton className="h-4 w-40 mt-1" />
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {t("dashboard.welcomeBack")}, {displayName}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-sm text-muted-foreground">
+                      {t("dashboard.welcomeBack")}, {displayName}
+                    </p>
+                    <UserRankBadge rank={profile?.effective_rank || "bronze"} />
+                  </div>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <UserNotificationBell />
               <div className="hidden sm:flex items-center gap-2">
                 <LanguageSwitcher />
                 <Button

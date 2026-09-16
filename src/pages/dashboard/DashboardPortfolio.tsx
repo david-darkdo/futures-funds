@@ -9,6 +9,7 @@ import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { PaymentUploadDialog } from "@/components/payments/PaymentUploadDialog";
 import { WithdrawalRequestDialog } from "@/components/payments/WithdrawalRequestDialog";
 import { InvestDialog } from "@/components/payments/InvestDialog";
+import { ActiveInvestmentsCard } from "@/components/dashboard/ActiveInvestmentsCard";
 
 
 
@@ -40,6 +41,10 @@ export default function DashboardPortfolio() {
         canInvest={!investingFrozen && mainBalance > 0}
         canWithdraw={available > 0}
       />
+
+      {runningInvestments.length > 0 && (
+        <ActiveInvestmentsCard investments={runningInvestments} onRefresh={refetch} />
+      )}
 
       <PlansPreview />
 
