@@ -20,6 +20,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -123,8 +124,12 @@ export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdraw
             })}
           </nav>
 
-          {/* Logout */}
-          <div className="p-4 border-t border-border">
+          {/* Theme & Logout */}
+          <div className="p-4 border-t border-border space-y-2">
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-xs text-muted-foreground font-medium">Theme</span>
+              <ThemeToggle />
+            </div>
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
