@@ -29,6 +29,7 @@ import AdminInvestments from "./pages/AdminInvestments";
 import AdminWithdrawals from "./pages/AdminWithdrawals";
 import AdminWallets from "./pages/AdminWallets";
 import AdminUsers from "./pages/AdminUsers";
+import AdminUserState from "./pages/AdminUserState";
 import AdminBundles from "./pages/AdminBundles";
 import AdminProofs from "./pages/AdminProofs";
 import AdminEmails from "./pages/AdminEmails";
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawals /></AdminRoute>} />
               <Route path="/admin/wallets" element={<AdminRoute><AdminWallets /></AdminRoute>} />
               <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+              <Route path="/admin/user-state" element={<AdminRoute><AdminUserState /></AdminRoute>} />
               <Route path="/admin/bundles" element={<AdminRoute><AdminBundles /></AdminRoute>} />
               <Route path="/admin/proofs" element={<AdminRoute><AdminProofs /></AdminRoute>} />
               <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
