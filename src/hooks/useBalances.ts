@@ -47,7 +47,7 @@ export function useBalances(): Balances {
         .maybeSingle(),
       supabase
         .from("user_investments")
-        .select("id, bundle_id, initial_amount, current_value, growth_percentage, state, matures_at, paused_at, created_at")
+        .select("*")
         .eq("user_id", user.id)
         .in("state", ["active", "paused"])
         .order("created_at", { ascending: false }),
