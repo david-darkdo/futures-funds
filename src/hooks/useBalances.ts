@@ -6,7 +6,11 @@ export interface RunningInvestment {
   id: string;
   bundle_id: string;
   initial_amount: number;
+  current_value: number;
+  growth_percentage: number;
+  state: string;
   matures_at: string | null;
+  paused_at?: string | null;
   created_at: string;
   bundle?: { id: string; name: string; daily_growth_rate: number | null };
 }
@@ -43,9 +47,9 @@ export function useBalances(): Balances {
         .maybeSingle(),
       supabase
         .from("user_investments")
-        .select("id, bundle_id, initial_amount, matures_at, created_at")
+        .select("id, bundle_id, initial_amount, current_value, growth_percentage, state, matures_at, paused_at, created_at")
         .eq("user_id", user.id)
-        .eq("state", "active")
+        .in("state", ["active", "paused"])
         .order("created_at", { ascending: false }),
     ]);
 
@@ -68,7 +72,11 @@ export function useBalances(): Balances {
           id: i.id,
           bundle_id: i.bundle_id,
           initial_amount: Number(i.initial_amount),
+          current_value: Number(i.current_value || i.initial_amount),
+          growth_percentage: Number(i.growth_percentage || 0),
+          state: i.state,
           matures_at: i.matures_at,
+          paused_at: i.paused_at,
           created_at: i.created_at,
           bundle: bundleMap.get(i.bundle_id) as any,
         }))

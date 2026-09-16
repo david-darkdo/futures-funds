@@ -11,6 +11,12 @@ interface Profile {
   avatar_url?: string | null;
   theme?: string | null;
   language?: string | null;
+  investing_frozen?: boolean | null;
+  main_balance?: number | null;
+  profit_balance?: number | null;
+  calculated_rank?: string;
+  manual_rank?: string | null;
+  effective_rank?: string;
 }
 
 interface Bundle {

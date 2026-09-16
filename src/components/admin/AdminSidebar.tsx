@@ -14,7 +14,8 @@ import {
   Image as ImageIcon,
   Mail,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Shield,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const adminSidebarLinks = [
   { name: "Payment Proofs", href: "/admin/proofs", icon: ImageIcon },
   { name: "Investments", href: "/admin/investments", icon: TrendingUp },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: ArrowDownToLine, countKey: "withdrawals" as const },
+  { name: "User State", href: "/admin/user-state", icon: Shield },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Bundles", href: "/admin/bundles", icon: Package },
   { name: "Wallets", href: "/admin/wallets", icon: Wallet },
