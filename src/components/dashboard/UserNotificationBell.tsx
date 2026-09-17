@@ -47,7 +47,8 @@ export function UserNotificationBell() {
         <div className="flex items-center justify-between p-3.5 border-b border-border">
           <div className="flex items-center gap-2">
             <h4 className="font-semibold text-sm">Notifications</h4>
-            {unreadCount > 0 && (\n              <Badge variant="outline" className="bg-gold/10 text-gold border-gold/30 text-[10px] px-1.5 py-0">
+            {unreadCount > 0 && (
+              <Badge variant="outline" className="bg-gold/10 text-gold border-gold/30 text-[10px] px-1.5 py-0">
                 {unreadCount} new
               </Badge>
             )}
