@@ -299,12 +299,12 @@ export function UserDetailDrawer({
   const rankBadgeColor = (rank?: string) => {
     switch (rank?.toLowerCase()) {
       case "gold":
-        return "bg-gold/20 text-gold border-gold/40";
+        return "bg-gold/20 text-primary dark:text-gold border-gold/50";
       case "silver":
-        return "bg-slate-300/20 text-slate-200 border-slate-400/40";
+        return "bg-slate-300/40 text-slate-800 dark:text-slate-200 border-slate-500/50 dark:border-slate-400/40";
       case "bronze":
       default:
-        return "bg-amber-700/20 text-amber-500 border-amber-600/40";
+        return "bg-amber-700/20 text-amber-900 dark:text-amber-500 border-amber-600/50";
     }
   };
 
@@ -498,4 +498,370 @@ export function UserDetailDrawer({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {userInvestments.map((inv) => (\n                        <TableRow key={inv.id}>\n                          <TableCell>\n                            <div className=\"font-medium text-sm\">\n                              {inv.bundle?.name || \"Standard Portfolio\"}\n                            </div>\n                            <div className=\"text-xs text-muted-foreground\">\n                              {inv.created_at ? format(new Date(inv.created_at), \"MMM d, yyyy\") : \"\"}\n                            </div>\n                          </TableCell>\n                          <TableCell className=\"font-semibold\">\n                            ${(inv.initial_amount || 0).toLocaleString()}\n                          </TableCell>\n                          <TableCell>\n                            <div className=\"font-semibold text-teal\">\n                              ${(inv.current_value || 0).toLocaleString()}\n                            </div>\n                            <div className=\"text-xs text-muted-foreground\">\n                              +{inv.growth_percentage || 0}%\n                            </div>\n                          </TableCell>\n                          <TableCell>\n                            <InvestmentStatusBadge state={inv.state} />\n                          </TableCell>\n                        </TableRow>\n                      ))}\n                    </TableBody>\n                  </Table>\n                </div>\n              )}\n            </TabsContent>\n\n            {/* Ledger Tab */}\n            <TabsContent value=\"ledger\" className=\"mt-4 space-y-3\">\n              {loadingHistory ? (\n                <div className=\"p-8 text-center text-sm text-muted-foreground\">Loading ledger...</div>\n              ) : transactions.length === 0 ? (\n                <div className=\"p-8 text-center text-muted-foreground text-sm border border-dashed rounded-xl\">\n                  No transaction records found in ledger.\n                </div>\n              ) : (\n                <div className=\"border border-border rounded-xl overflow-hidden\">\n                  <Table>\n                    <TableHeader>\n                      <TableRow>\n                        <TableHead>Type</TableHead>\n                        <TableHead>Amount</TableHead>\n                        <TableHead>Source</TableHead>\n                        <TableHead>Date</TableHead>\n                      </TableRow>\n                    </TableHeader>\n                    <TableBody>\n                      {transactions.map((tx) => (\n                        <TableRow key={tx.id}>\n                          <TableCell>\n                            <Badge variant=\"outline\" className=\"text-xs capitalize font-mono\">\n                              {tx.tx_type}\n                            </Badge>\n                          </TableCell>\n                          <TableCell className=\"font-semibold\">\n                            ${(tx.amount || 0).toLocaleString(\"en-US\", { minimumFractionDigits: 2 })}\n                          </TableCell>\n                          <TableCell className=\"text-xs text-muted-foreground\">\n                            {tx.source || \"system\"}\n                          </TableCell>\n                          <TableCell className=\"text-xs text-muted-foreground whitespace-nowrap\">\n                            {tx.created_at ? format(new Date(tx.created_at), \"MMM d, HH:mm\") : \"\"}\n                          </TableCell>\n                        </TableRow>\n                      ))}\n                    </TableBody>\n                  </Table>\n                </div>\n              )}\n            </TabsContent>\n\n            {/* Audit Log Tab */}\n            <TabsContent value=\"audit\" className=\"mt-4 space-y-3\">\n              {loadingHistory ? (\n                <div className=\"p-8 text-center text-sm text-muted-foreground\">Loading audit log...</div>\n              ) : auditLogs.length === 0 ? (\n                <div className=\"p-8 text-center text-muted-foreground text-sm border border-dashed rounded-xl\">\n                  No administrative actions logged for this client yet.\n                </div>\n              ) : (\n                <div className=\"space-y-2\">\n                  {auditLogs.map((log) => (\n                    <div key={log.id} className=\"p-3 rounded-lg bg-secondary/40 border border-border text-sm\">\n                      <div className=\"flex items-center justify-between mb-1\">\n                        <Badge variant=\"outline\" className=\"font-mono text-xs\">\n                          {log.action}\n                        </Badge>\n                        <span className=\"text-xs text-muted-foreground\">\n                          {log.created_at ? format(new Date(log.created_at), \"MMM d, yyyy HH:mm\") : \"\"}\n                        </span>\n                      </div>\n                      {log.reason && (\n                        <p className=\"text-xs text-muted-foreground mt-1\">\n                          <strong className=\"text-foreground\">Reason:</strong> {log.reason}\n                        </p>\n                      )}\n                    </div>\n                  ))}\n                </div>\n              )}\n            </TabsContent>\n          </Tabs>\n        </SheetContent>\n      </Sheet>\n\n      {/* Adjust Main Balance Dialog */}\n      <Dialog open={balanceDialogOpen} onOpenChange={setBalanceDialogOpen}>\n        <DialogContent className=\"sm:max-w-md\">\n          <DialogHeader>\n            <DialogTitle>Adjust Main Balance</DialogTitle>\n            <DialogDescription>\n              Add or deduct funds directly from the client&apos;s main account balance. An audit entry and ledger record will be immutably recorded.\n            </DialogDescription>\n          </DialogHeader>\n\n          <div className=\"space-y-4 py-3\">\n            <div className=\"grid grid-cols-2 gap-2\">\n              <Button\n                type=\"button\"\n                variant={balanceType === \"add\" ? \"default\" : \"outline\"}\n                className={balanceType === \"add\" ? \"bg-teal hover:bg-teal/90 text-primary-foreground\" : \"\"}\n                onClick={() => setBalanceType(\"add\")}\n              >\n                + Add Balance\n              </Button>\n              <Button\n                type=\"button\"\n                variant={balanceType === \"deduct\" ? \"destructive\" : \"outline\"}\n                onClick={() => setBalanceType(\"deduct\")}\n              >\n                - Deduct Balance\n              </Button>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Adjustment Amount (USD)</Label>\n              <div className=\"relative\">\n                <DollarSign className=\"absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground\" />\n                <Input\n                  type=\"number\"\n                  placeholder=\"0.00\"\n                  step=\"0.01\"\n                  min=\"0.01\"\n                  value={balanceAmount}\n                  onChange={(e) => setBalanceAmount(e.target.value)}\n                  className=\"pl-9\"\n                />\n              </div>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Reason (Mandatory for audit trail)</Label>\n              <Textarea\n                placeholder=\"e.g. Deposit reconciliation / Compensation / Approved manual credit\"\n                value={balanceReason}\n                onChange={(e) => setBalanceReason(e.target.value)}\n                rows={3}\n              />\n            </div>\n          </div>\n\n          <DialogFooter>\n            <Button variant=\"outline\" onClick={() => setBalanceDialogOpen(false)}>\n              Cancel\n            </Button>\n            <Button\n              onClick={handleBalanceSubmit}\n              disabled={isSubmittingBalance}\n              className=\"bg-gold hover:bg-gold-light text-navy font-semibold\"\n            >\n              {isSubmittingBalance ? \"Adjusting...\" : \"Confirm Balance Adjustment\"}\n            </Button>\n          </DialogFooter>\n        </DialogContent>\n      </Dialog>\n\n      {/* Adjust Profit Balance Dialog */}\n      <Dialog open={profitDialogOpen} onOpenChange={setProfitDialogOpen}>\n        <DialogContent className=\"sm:max-w-md\">\n          <DialogHeader>\n            <DialogTitle>Adjust Profit Balance</DialogTitle>\n            <DialogDescription>\n              Directly credit or debit the client&apos;s accrued profit balance.\n            </DialogDescription>\n          </DialogHeader>\n\n          <div className=\"space-y-4 py-3\">\n            <div className=\"grid grid-cols-2 gap-2\">\n              <Button\n                type=\"button\"\n                variant={profitType === \"add\" ? \"default\" : \"outline\"}\n                className={profitType === \"add\" ? \"bg-teal hover:bg-teal/90 text-primary-foreground\" : \"\"}\n                onClick={() => setProfitType(\"add\")}\n              >\n                + Add Profit\n              </Button>\n              <Button\n                type=\"button\"\n                variant={profitType === \"deduct\" ? \"destructive\" : \"outline\"}\n                onClick={() => setProfitType(\"deduct\")}\n              >\n                - Deduct Profit\n              </Button>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Adjustment Amount (USD)</Label>\n              <div className=\"relative\">\n                <DollarSign className=\"absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground\" />\n                <Input\n                  type=\"number\"\n                  placeholder=\"0.00\"\n                  step=\"0.01\"\n                  min=\"0.01\"\n                  value={profitAmount}\n                  onChange={(e) => setProfitAmount(e.target.value)}\n                  className=\"pl-9\"\n                />\n              </div>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Reason (Mandatory for audit trail)</Label>\n              <Textarea\n                placeholder=\"e.g. Yield bonus / Manual profit correction\"\n                value={profitReason}\n                onChange={(e) => setProfitReason(e.target.value)}\n                rows={3}\n              />\n            </div>\n          </div>\n\n          <DialogFooter>\n            <Button variant=\"outline\" onClick={() => setProfitDialogOpen(false)}>\n              Cancel\n            </Button>\n            <Button\n              onClick={handleProfitSubmit}\n              disabled={isSubmittingProfit}\n              className=\"bg-teal hover:bg-teal/90 text-primary-foreground font-semibold\"\n            >\n              {isSubmittingProfit ? \"Adjusting...\" : \"Confirm Profit Adjustment\"}\n            </Button>\n          </DialogFooter>\n        </DialogContent>\n      </Dialog>\n\n      {/* Set User Rank Dialog */}\n      <Dialog open={rankDialogOpen} onOpenChange={setRankDialogOpen}>\n        <DialogContent className=\"sm:max-w-md\">\n          <DialogHeader>\n            <DialogTitle>Manage User Rank Tier</DialogTitle>\n            <DialogDescription>\n              Set an explicit rank override or restore automatic dynamic rank calculation based on investment volume.\n            </DialogDescription>\n          </DialogHeader>\n\n          <div className=\"space-y-4 py-3\">\n            <div className=\"space-y-2\">\n              <Label>Select Tier Rank</Label>\n              <Select value={selectedRank} onValueChange={setSelectedRank}>\n                <SelectTrigger>\n                  <SelectValue placeholder=\"Select rank tier\" />\n                </SelectTrigger>\n                <SelectContent>\n                  <SelectItem value=\"auto\">Automatic (Dynamic Volume Calculation)</SelectItem>\n                  <SelectItem value=\"bronze\">Bronze ($0+ threshold)</SelectItem>\n                  <SelectItem value=\"silver\">Silver ($10,000+ threshold)</SelectItem>\n                  <SelectItem value=\"gold\">Gold ($50,000+ threshold)</SelectItem>\n                </SelectContent>\n              </Select>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Reason for override</Label>\n              <Textarea\n                placeholder=\"e.g. VIP client VIP fast-track / Manual promotion\"\n                value={rankReason}\n                onChange={(e) => setRankReason(e.target.value)}\n                rows={3}\n              />\n            </div>\n          </div>\n\n          <DialogFooter>\n            <Button variant=\"outline\" onClick={() => setRankDialogOpen(false)}>\n              Cancel\n            </Button>\n            <Button\n              onClick={handleRankSubmit}\n              disabled={isSubmittingRank}\n              className=\"bg-gold hover:bg-gold-light text-navy font-semibold\"\n            >\n              {isSubmittingRank ? \"Updating...\" : \"Save Rank Override\"}\n            </Button>\n          </DialogFooter>\n        </DialogContent>\n      </Dialog>\n\n      {/* Targeted Notification Dialog */}\n      <Dialog open={notifDialogOpen} onOpenChange={setNotifDialogOpen}>\n        <DialogContent className=\"sm:max-w-md\">\n          <DialogHeader>\n            <DialogTitle>Send Targeted In-App Notification</DialogTitle>\n            <DialogDescription>\n              This notification will be delivered directly and exclusively to this client&apos;s notification feed.\n            </DialogDescription>\n          </DialogHeader>\n\n          <div className=\"space-y-4 py-3\">\n            <div className=\"space-y-2\">\n              <Label>Notification Type</Label>\n              <Select value={notifType} onValueChange={setNotifType}>\n                <SelectTrigger>\n                  <SelectValue />\n                </SelectTrigger>\n                <SelectContent>\n                  <SelectItem value=\"management\">Management Update</SelectItem>\n                  <SelectItem value=\"alert\">Critical Alert</SelectItem>\n                  <SelectItem value=\"reward\">VIP Reward</SelectItem>\n                  <SelectItem value=\"system\">System Notice</SelectItem>\n                </SelectContent>\n              </Select>\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Title</Label>\n              <Input\n                placeholder=\"e.g. Portfolio Status Update\"\n                value={notifTitle}\n                onChange={(e) => setNotifTitle(e.target.value)}\n              />\n            </div>\n\n            <div className=\"space-y-2\">\n              <Label>Message</Label>\n              <Textarea\n                placeholder=\"Write message to client...\"\n                value={notifMessage}\n                onChange={(e) => setNotifMessage(e.target.value)}\n                rows={4}\n              />\n            </div>\n          </div>\n\n          <DialogFooter>\n            <Button variant=\"outline\" onClick={() => setNotifDialogOpen(false)}>\n              Cancel\n            </Button>\n            <Button\n              onClick={handleSendNotification}\n              disabled={isSendingNotif}\n              className=\"bg-gold hover:bg-gold-light text-navy font-semibold\"\n            >\n              {isSendingNotif ? \"Sending...\" : \"Send Targeted Notification\"}\n            </Button>\n          </DialogFooter>\n        </DialogContent>\n      </Dialog>\n    </>\n  );\n}\n
+                      {userInvestments.map((inv) => (
+                        <TableRow key={inv.id}>
+                          <TableCell>
+                            <div className="font-medium text-sm">
+                              {inv.bundle?.name || "Standard Portfolio"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {inv.created_at ? format(new Date(inv.created_at), "MMM d, yyyy") : ""}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            ${(inv.initial_amount || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold text-teal">
+                              ${(inv.current_value || 0).toLocaleString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              +{inv.growth_percentage || 0}%
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <InvestmentStatusBadge status={inv.state} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Ledger Tab */}
+            <TabsContent value="ledger" className="mt-4 space-y-3">
+              {loadingHistory ? (
+                <div className="p-8 text-center text-sm text-muted-foreground">Loading ledger...</div>
+              ) : transactions.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground text-sm border border-dashed rounded-xl">
+                  No transaction records found in ledger.
+                </div>
+              ) : (
+                <div className="border border-border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transactions.map((tx) => (
+                        <TableRow key={tx.id}>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs capitalize font-mono">
+                              {tx.tx_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold">
+                            ${(tx.amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {tx.source || "system"}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {tx.created_at ? format(new Date(tx.created_at), "MMM d, HH:mm") : ""}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Audit Log Tab */}
+            <TabsContent value="audit" className="mt-4 space-y-3">
+              {loadingHistory ? (
+                <div className="p-8 text-center text-sm text-muted-foreground">Loading audit log...</div>
+              ) : auditLogs.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground text-sm border border-dashed rounded-xl">
+                  No administrative actions logged for this client yet.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="p-3 rounded-lg bg-secondary/40 border border-border text-sm">
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {log.action}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {log.created_at ? format(new Date(log.created_at), "MMM d, yyyy HH:mm") : ""}
+                        </span>
+                      </div>
+                      {log.reason && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <strong className="text-foreground">Reason:</strong> {log.reason}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </SheetContent>
+      </Sheet>
+
+      {/* Adjust Main Balance Dialog */}
+      <Dialog open={balanceDialogOpen} onOpenChange={setBalanceDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adjust Main Balance</DialogTitle>
+            <DialogDescription>
+              Add or deduct funds directly from the client&apos;s main account balance. An audit entry and ledger record will be immutably recorded.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={balanceType === "add" ? "default" : "outline"}
+                className={balanceType === "add" ? "bg-teal hover:bg-teal/90 text-primary-foreground" : ""}
+                onClick={() => setBalanceType("add")}
+              >
+                + Add Balance
+              </Button>
+              <Button
+                type="button"
+                variant={balanceType === "deduct" ? "destructive" : "outline"}
+                onClick={() => setBalanceType("deduct")}
+              >
+                - Deduct Balance
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Adjustment Amount (USD)</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  value={balanceAmount}
+                  onChange={(e) => setBalanceAmount(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reason (Mandatory for audit trail)</Label>
+              <Textarea
+                placeholder="e.g. Deposit reconciliation / Compensation / Approved manual credit"
+                value={balanceReason}
+                onChange={(e) => setBalanceReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBalanceDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBalanceSubmit}
+              disabled={isSubmittingBalance}
+              className="bg-gold hover:bg-gold-light text-navy font-semibold"
+            >
+              {isSubmittingBalance ? "Adjusting..." : "Confirm Balance Adjustment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Adjust Profit Balance Dialog */}
+      <Dialog open={profitDialogOpen} onOpenChange={setProfitDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adjust Profit Balance</DialogTitle>
+            <DialogDescription>
+              Directly credit or debit the client&apos;s accrued profit balance.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={profitType === "add" ? "default" : "outline"}
+                className={profitType === "add" ? "bg-teal hover:bg-teal/90 text-primary-foreground" : ""}
+                onClick={() => setProfitType("add")}
+              >
+                + Add Profit
+              </Button>
+              <Button
+                type="button"
+                variant={profitType === "deduct" ? "destructive" : "outline"}
+                onClick={() => setProfitType("deduct")}
+              >
+                - Deduct Profit
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Adjustment Amount (USD)</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  value={profitAmount}
+                  onChange={(e) => setProfitAmount(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reason (Mandatory for audit trail)</Label>
+              <Textarea
+                placeholder="e.g. Yield bonus / Manual profit correction"
+                value={profitReason}
+                onChange={(e) => setProfitReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProfitDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleProfitSubmit}
+              disabled={isSubmittingProfit}
+              className="bg-teal hover:bg-teal/90 text-primary-foreground font-semibold"
+            >
+              {isSubmittingProfit ? "Adjusting..." : "Confirm Profit Adjustment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set User Rank Dialog */}
+      <Dialog open={rankDialogOpen} onOpenChange={setRankDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Manage User Rank Tier</DialogTitle>
+            <DialogDescription>
+              Set an explicit rank override or restore automatic dynamic rank calculation based on investment volume.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label>Select Tier Rank</Label>
+              <Select value={selectedRank} onValueChange={setSelectedRank}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select rank tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Automatic (Dynamic Volume Calculation)</SelectItem>
+                  <SelectItem value="bronze">Bronze ($0+ threshold)</SelectItem>
+                  <SelectItem value="silver">Silver ($10,000+ threshold)</SelectItem>
+                  <SelectItem value="gold">Gold ($50,000+ threshold)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reason for override</Label>
+              <Textarea
+                placeholder="e.g. VIP client VIP fast-track / Manual promotion"
+                value={rankReason}
+                onChange={(e) => setRankReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRankDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRankSubmit}
+              disabled={isSubmittingRank}
+              className="bg-gold hover:bg-gold-light text-navy font-semibold"
+            >
+              {isSubmittingRank ? "Updating..." : "Save Rank Override"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Targeted Notification Dialog */}
+      <Dialog open={notifDialogOpen} onOpenChange={setNotifDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Targeted In-App Notification</DialogTitle>
+            <DialogDescription>
+              This notification will be delivered directly and exclusively to this client&apos;s notification feed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label>Notification Type</Label>
+              <Select value={notifType} onValueChange={setNotifType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="management">Management Update</SelectItem>
+                  <SelectItem value="alert">Critical Alert</SelectItem>
+                  <SelectItem value="reward">VIP Reward</SelectItem>
+                  <SelectItem value="system">System Notice</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input
+                placeholder="e.g. Portfolio Status Update"
+                value={notifTitle}
+                onChange={(e) => setNotifTitle(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Message</Label>
+              <Textarea
+                placeholder="Write message to client..."
+                value={notifMessage}
+                onChange={(e) => setNotifMessage(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotifDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendNotification}
+              disabled={isSendingNotif}
+              className="bg-gold hover:bg-gold-light text-navy font-semibold"
+            >
+              {isSendingNotif ? "Sending..." : "Send Targeted Notification"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
