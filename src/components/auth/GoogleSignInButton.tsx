@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function GoogleSignInButton({ label }: { label?: string }) {
@@ -10,17 +10,21 @@ export function GoogleSignInButton({ label }: { label?: string }) {
 
   const handleClick = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (error) {
+        setLoading(false);
+        toast.error(error.message || "Google sign-in failed");
+      }
+    } catch (err: any) {
       setLoading(false);
-      toast.error((result.error as any)?.message || "Google sign-in failed");
-      return;
+      toast.error(err?.message || "Google sign-in failed");
     }
-    if (result.redirected) return;
-    // Session set — let auth listener route the user
-    setLoading(false);
   };
 
   return (
