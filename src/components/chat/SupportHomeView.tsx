@@ -61,7 +61,7 @@ export function SupportHomeView({
             <TrendingUp className="w-4 h-4 text-amber-400" />
           </div>
           <span className="font-bold text-base tracking-tight text-white">
-            Future<span className="text-amber-400">Funds</span>
+            Futures <span className="text-amber-400">Fund</span>
           </span>
         </div>
 

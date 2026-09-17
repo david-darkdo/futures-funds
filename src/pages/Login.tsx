@@ -77,7 +77,7 @@ export default function Login() {
               <TrendingUp className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-display font-bold text-foreground">
-              Future<span className="text-gold">Funds</span>
+              Futures <span className="text-gold">Fund</span>
             </span>
           </Link>
 
@@ -157,7 +157,8 @@ export default function Login() {
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-muted-foreground">
+          {/* Sign Up Link */}
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             {t("auth.noAccount")}{" "}
             <Link to="/signup" className="text-gold hover:text-gold-light font-medium transition-colors">
               {t("auth.signUp")}

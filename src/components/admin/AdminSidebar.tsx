@@ -86,7 +86,7 @@ export function AdminSidebar({ isOpen, onClose, pendingPayments, pendingWithdraw
               </div>
               <div>
                 <span className="text-xl font-display font-bold text-foreground block">
-                  Future<span className="text-gold">Funds</span>
+                  Futures <span className="text-gold">Fund</span>
                 </span>
                 <span className="text-xs text-muted-foreground">Management Panel</span>
               </div>
