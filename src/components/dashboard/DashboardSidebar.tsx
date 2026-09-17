@@ -47,7 +47,8 @@ const sidebarLinks: {
   allowedStates: UserDashboardState[];
   external?: boolean;
 }[] = [
-  {\n    name: "Homepage",
+  {
+    name: "Homepage",
     href: "/",
     icon: Home,
     allowedStates: ["start", "pending", "portfolio", "loading"],
