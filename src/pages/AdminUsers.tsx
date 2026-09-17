@@ -53,4 +53,16 @@ export default function AdminUsers() {
         </header>
 
         <main className="flex-1 p-4 lg:p-8">
-          {loading ? (\n            <div className="space-y-4">\n              <Skeleton className="h-10 w-full max-w-sm" />\n              <Skeleton className="h-64 w-full rounded-xl" />\n            </div>\n          ) : (\n            <UsersTable profiles={profiles} onUpdateStatus={updateUserStatus} onToggleFreeze={toggleInvestingFreeze} />\n          )}\n        </main>\n      </div>\n    </div>\n  );\n}\n
+          {loading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full max-w-sm" />
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+          ) : (
+            <UsersTable profiles={profiles} onUpdateStatus={updateUserStatus} onToggleFreeze={toggleInvestingFreeze} />
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
