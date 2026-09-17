@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await withTimeout(
         Promise.resolve(
-          supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle()
+          supabase.from("user_roles").select("role").eq("user_id", userId)
         ),
         8000,
         "fetchUserRole"
@@ -56,10 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return "user";
       }
 
-      if (res.data?.role) {
-        const fetchedRole = res.data.role as UserRole;
-        console.log("[Auth] Fetched role for user:", userId, "->", fetchedRole);
-        return fetchedRole;
+      if (res.data && res.data.length > 0) {
+        const roles = res.data.map((r: any) => r.role);
+        const isAdmin = roles.includes("admin") || roles.includes("super_admin");
+        const finalRole: UserRole = isAdmin ? "admin" : "user";
+        console.log("[Auth] Fetched roles for user:", userId, "->", roles, "resolved to:", finalRole);
+        return finalRole;
       }
 
       console.log("[Auth] No role row found, treating as unauthorized (user)");
