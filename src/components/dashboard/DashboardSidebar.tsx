@@ -47,8 +47,7 @@ const sidebarLinks: {
   allowedStates: UserDashboardState[];
   external?: boolean;
 }[] = [
-  {
-    name: "Homepage",
+  {\n    name: "Homepage",
     href: "/",
     icon: Home,
     allowedStates: ["start", "pending", "portfolio", "loading"],
@@ -133,7 +132,7 @@ export function DashboardSidebar({
                 <TrendingUp className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-display font-bold text-foreground">
-                Future<span className="text-gold">Funds</span>
+                Futures <span className="text-gold">Fund</span>
               </span>
             </Link>
             <button

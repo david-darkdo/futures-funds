@@ -1,14 +1,97 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  "553292446781-phmi1pmmud76jm09f8l0lm5p0a8vbvns.apps.googleusercontent.com";
+
 export function GoogleSignInButton({ label }: { label?: string }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [gisRendered, setGisRendered] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = async () => {
+  useEffect(() => {
+    let intervalId: any;
+
+    const initGis = () => {
+      if (!window.google?.accounts?.id || !googleBtnRef.current) return false;
+
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response: { credential?: string }) => {
+            if (!response.credential) {
+              toast.error("Google authentication failed: missing token.");
+              return;
+            }
+            setLoading(true);
+            try {
+              const { error } = await supabase.auth.signInWithIdToken({
+                provider: "google",
+                token: response.credential,
+              });
+              if (error) {
+                console.error("[Google Auth] signInWithIdToken error:", error);
+                toast.error(error.message || "Failed to sign in with Google.");
+              } else {
+                toast.success("Signed in successfully with Google!");
+                window.location.href = "/dashboard";
+              }
+            } catch (err: any) {
+              console.error("[Google Auth] Exception:", err);
+              toast.error(err?.message || "An unexpected error occurred.");
+            } finally {
+              setLoading(false);
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        if (googleBtnRef.current) {
+          googleBtnRef.current.innerHTML = "";
+          window.google.accounts.id.renderButton(googleBtnRef.current, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: Math.min(googleBtnRef.current.offsetWidth || 380, 400),
+          });
+          setGisRendered(true);
+        }
+        return true;
+      } catch (err) {
+        console.warn("[Google Auth] Error initializing GIS:", err);
+        return false;
+      }
+    };
+
+    if (!initGis()) {
+      intervalId = setInterval(() => {
+        if (initGis()) {
+          clearInterval(intervalId);
+        }
+      }, 300);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
+
+  const handleFallbackOAuth = async () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -28,17 +111,29 @@ export function GoogleSignInButton({ label }: { label?: string }) {
   };
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="lg"
-      className="w-full h-12 gap-3"
-      onClick={handleClick}
-      disabled={loading}
-    >
-      <GoogleIcon />
-      <span>{label || t("auth.continueWithGoogle")}</span>
-    </Button>
+    <div className="w-full flex flex-col items-center">
+      {/* Container for Google Identity Services official rendered button */}
+      <div
+        ref={googleBtnRef}
+        className={`w-full flex justify-center ${gisRendered ? "min-h-[44px]" : "hidden"}`}
+        style={{ minHeight: gisRendered ? "44px" : "0px" }}
+      />
+
+      {/* Fallback button if GIS script is loading or blocked */}
+      {!gisRendered && (
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full h-12 gap-3"
+          onClick={handleFallbackOAuth}
+          disabled={loading}
+        >
+          <GoogleIcon />
+          <span>{label || t("auth.continueWithGoogle")}</span>
+        </Button>
+      )}
+    </div>
   );
 }
 

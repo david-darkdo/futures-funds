@@ -30,7 +30,7 @@ export function Footer() {
                 <TrendingUp className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-display font-bold text-foreground">
-                Future<span className="text-gold">Funds</span>
+                Futures <span className="text-gold">Fund</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm mb-6 max-w-xs">{t("footer.tagline")}</p>
@@ -78,7 +78,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm text-center md:text-left">
-            © {new Date().getFullYear()} FutureFunds. {t("footer.rights")}
+            © {new Date().getFullYear()} Futures Fund. {t("footer.rights")}
           </p>
           <p className="text-muted-foreground text-xs text-center md:text-right max-w-md">
             {t("footer.disclaimer")}
