@@ -180,12 +180,12 @@ export default function AdminUserState() {
   const rankBadgeColor = (rank?: string) => {
     switch (rank?.toLowerCase()) {
       case "gold":
-        return "bg-gold/20 text-gold border-gold/40";
+        return "bg-gold/20 text-primary dark:text-gold border-gold/50";
       case "silver":
-        return "bg-slate-300/20 text-slate-200 border-slate-400/40";
+        return "bg-slate-300/40 text-slate-800 dark:text-slate-200 border-slate-500/50 dark:border-slate-400/40";
       case "bronze":
       default:
-        return "bg-amber-700/20 text-amber-500 border-amber-600/40";
+        return "bg-amber-700/20 text-amber-900 dark:text-amber-500 border-amber-600/50";
     }
   };
 
