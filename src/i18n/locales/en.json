@@ -28,7 +28,7 @@
     "show": "Show balance",
     "hide": "Hide balance",
     "title": "Smart Crypto Investment. Transparent Growth. Secure Future.",
-    "subtitle": "Join thousands of investors who trust FutureFunds for secure, manually-verified crypto investments with complete transparency.",
+    "subtitle": "Join thousands of investors who trust Futures Fund for secure, manually-verified crypto investments with complete transparency.",
     "badge": "Secure & Transparent Crypto Investment",
     "stats": {
       "verification": "Manual Verification",
@@ -188,7 +188,7 @@
     "brandSubtitleLogin": "Access your personalized dashboard, track your investments, and manage your portfolio with complete transparency.",
     "brandTitleSignup": "Start Your Journey",
     "brandTitleSignupAccent": "To Financial Freedom",
-    "brandSubtitleSignup": "Join thousands of investors who trust FutureFunds for secure, transparent crypto investments.",
+    "brandSubtitleSignup": "Join thousands of investors who trust Futures Fund for secure, transparent crypto investments.",
     "signInFailed": "Sign in failed",
     "signupFailed": "Sign up failed",
     "invalidCreds": "Invalid email or password. Please try again.",
@@ -340,7 +340,7 @@
       "titleLine1": "Smart Crypto Investment.",
       "titleLine2": "Transparent Growth.",
       "titleLine3": "Secure Future.",
-      "subtitle": "Join thousands of investors who trust FutureFunds for secure, manually-verified crypto investments with complete transparency.",
+      "subtitle": "Join thousands of investors who trust Futures Fund for secure, manually-verified crypto investments with complete transparency.",
       "getStarted": "Get Started",
       "viewPlans": "View Plans",
       "stat1": "Manual Verification",
@@ -350,7 +350,7 @@
     "why": {
       "tag": "Why Choose Us",
       "titleLead": "Why",
-      "titleAccent": "FutureFunds",
+      "titleAccent": "Futures Fund",
       "subtitle": "We combine cutting-edge technology with human expertise to deliver a secure and transparent investment experience.",
       "items": {
         "security": {
@@ -375,7 +375,7 @@
       "tag": "Simple Process",
       "titleLead": "How It",
       "titleAccent": "Works",
-      "subtitle": "Getting started with FutureFunds is simple and straightforward. Follow these steps to begin your investment journey.",
+      "subtitle": "Getting started with Futures Fund is simple and straightforward. Follow these steps to begin your investment journey.",
       "steps": {
         "account": {
           "title": "Create Account",
@@ -407,7 +407,7 @@
       "tag": "Security First",
       "titleLead": "Your Security is Our",
       "titleAccent": "Priority",
-      "subtitle": "We've built FutureFunds with security at its core. From encrypted communications to manual verification processes, every layer is designed to protect your investments.",
+      "subtitle": "We've built Futures Fund with security at its core. From encrypted communications to manual verification processes, every layer is designed to protect your investments.",
       "badge1": "256-bit Encryption",
       "badge2": "SOC 2 Compliant",
       "badge3": "GDPR Ready",
@@ -441,7 +441,7 @@
     "cta": {
       "titleLead": "Ready to Start Your",
       "titleAccent": "Investment Journey?",
-      "subtitle": "Join thousands of investors who trust FutureFunds. Create your account today and take the first step towards your financial future.",
+      "subtitle": "Join thousands of investors who trust Futures Fund. Create your account today and take the first step towards your financial future.",
       "primary": "Create Free Account",
       "secondary": "Compare Plans",
       "trust": "Your data is protected with bank-grade security"

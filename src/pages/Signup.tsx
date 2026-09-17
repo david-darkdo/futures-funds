@@ -125,7 +125,7 @@ export default function Signup() {
               <TrendingUp className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-display font-bold text-foreground">
-              Future<span className="text-gold">Funds</span>
+              Futures <span className="text-gold">Fund</span>
             </span>
           </Link>
 
