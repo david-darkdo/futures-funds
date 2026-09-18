@@ -437,7 +437,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          calculated_rank: string
           created_at: string | null
+          effective_rank: string
           email: string | null
           full_name: string | null
           id: string
@@ -445,14 +447,18 @@ export type Database = {
           language: string
           last_login_at: string | null
           main_balance: number
+          manual_rank: string | null
           profit_balance: number
+          rank_updated_at: string | null
           status: string | null
           theme: string
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          calculated_rank?: string
           created_at?: string | null
+          effective_rank?: string
           email?: string | null
           full_name?: string | null
           id: string
@@ -460,14 +466,18 @@ export type Database = {
           language?: string
           last_login_at?: string | null
           main_balance?: number
+          manual_rank?: string | null
           profit_balance?: number
+          rank_updated_at?: string | null
           status?: string | null
           theme?: string
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          calculated_rank?: string
           created_at?: string | null
+          effective_rank?: string
           email?: string | null
           full_name?: string | null
           id?: string
@@ -475,10 +485,56 @@ export type Database = {
           language?: string
           last_login_at?: string | null
           main_balance?: number
+          manual_rank?: string | null
           profit_balance?: number
+          rank_updated_at?: string | null
           status?: string | null
           theme?: string
           updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_manual_rank_fkey"
+            columns: ["manual_rank"]
+            isOneToOne: false
+            referencedRelation: "rank_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rank_tiers: {
+        Row: {
+          badge_color: string
+          created_at: string
+          description: string | null
+          display_name: string
+          enabled: boolean
+          id: string
+          min_invested: number
+          min_profit: number
+          priority: number
+        }
+        Insert: {
+          badge_color: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          enabled?: boolean
+          id: string
+          min_invested?: number
+          min_profit?: number
+          priority: number
+        }
+        Update: {
+          badge_color?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          min_invested?: number
+          min_profit?: number
+          priority?: number
         }
         Relationships: []
       }
@@ -531,13 +587,19 @@ export type Database = {
           admin_note: string | null
           bundle_id: string
           completed_at: string | null
+          completed_by: string | null
+          completion_reason: string | null
           created_at: string
           current_value: number
           growth_percentage: number
           id: string
           initial_amount: number
+          last_calculated_at: string | null
           last_updated_by: string | null
           matures_at: string | null
+          pause_reason: string | null
+          paused_at: string | null
+          paused_by: string | null
           payment_id: string | null
           state: Database["public"]["Enums"]["investment_state"]
           updated_at: string
@@ -547,13 +609,19 @@ export type Database = {
           admin_note?: string | null
           bundle_id: string
           completed_at?: string | null
+          completed_by?: string | null
+          completion_reason?: string | null
           created_at?: string
           current_value?: number
           growth_percentage?: number
           id?: string
           initial_amount?: number
+          last_calculated_at?: string | null
           last_updated_by?: string | null
           matures_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          paused_by?: string | null
           payment_id?: string | null
           state?: Database["public"]["Enums"]["investment_state"]
           updated_at?: string
@@ -563,13 +631,19 @@ export type Database = {
           admin_note?: string | null
           bundle_id?: string
           completed_at?: string | null
+          completed_by?: string | null
+          completion_reason?: string | null
           created_at?: string
           current_value?: number
           growth_percentage?: number
           id?: string
           initial_amount?: number
+          last_calculated_at?: string | null
           last_updated_by?: string | null
           matures_at?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          paused_by?: string | null
           payment_id?: string | null
           state?: Database["public"]["Enums"]["investment_state"]
           updated_at?: string
@@ -717,6 +791,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_investment_rate: {
+        Args: {
+          _investment_id: string
+          _new_percentage: number
+          _reason: string
+        }
+        Returns: Json
+      }
+      admin_adjust_user_balance: {
+        Args: {
+          _amount: number
+          _reason: string
+          _type: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      admin_adjust_user_profit: {
+        Args: {
+          _amount: number
+          _reason: string
+          _type: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       admin_apply_growth: {
         Args: {
           _change_type: string
@@ -730,8 +830,16 @@ export type Database = {
         Args: { _txid?: string; _withdrawal_id: string }
         Returns: Json
       }
+      admin_pause_investment: {
+        Args: { _investment_id: string; _reason?: string }
+        Returns: Json
+      }
       admin_reject_withdrawal: {
         Args: { _note?: string; _withdrawal_id: string }
+        Returns: Json
+      }
+      admin_resume_investment: {
+        Args: { _investment_id: string; _reason?: string }
         Returns: Json
       }
       admin_set_investing_frozen: {
@@ -740,6 +848,10 @@ export type Database = {
       }
       admin_set_investment_state: {
         Args: { _investment_id: string; _note?: string; _state: string }
+        Returns: Json
+      }
+      admin_set_user_rank: {
+        Args: { _manual_rank: string; _reason: string; _user_id: string }
         Returns: Json
       }
       admin_set_user_status: {
@@ -759,7 +871,22 @@ export type Database = {
         Returns: string
       }
       mask_email: { Args: { email: string }; Returns: string }
+      process_all_matured_investments: { Args: never; Returns: number }
+      recalculate_user_rank: { Args: { _user_id: string }; Returns: string }
       require_management: { Args: never; Returns: string }
+      send_user_notification: {
+        Args: {
+          _message: string
+          _recipient_id: string
+          _title: string
+          _type?: string
+        }
+        Returns: Json
+      }
+      settle_investment: {
+        Args: { _investment_id: string; _reason?: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
